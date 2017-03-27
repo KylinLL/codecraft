@@ -21,10 +21,10 @@ public class Main {
 	public static int NUM_PATH; // 链路条数
 	public static int NUM_CONSUMER; // 消费节点
 	public static int PRICE_PER_SERVER; // 服务器部署成本
-	public static int[][] MATRIX_NETWORK = new int[1001][1001];
-	public static int[][] MATRIX_COST = new int[1001][1001];
+	public static int[][] MATRIX_NETWORK = new int[1002][1002];
+	public static int[][] MATRIX_COST = new int[1002][1002];
 	public static int[][] CONSUMER = new int[501][2];
-	public static Integer MIN_COST;
+	public static int MIN_COST;
 
 	public static void main(String[] args) throws Exception {
 		if (args.length != 2) {

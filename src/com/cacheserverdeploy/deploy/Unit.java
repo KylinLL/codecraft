@@ -8,12 +8,14 @@ import com.filetool.main.Main;
 
 public class Unit {
 
-	int size = Main.NUM_CONSUMER - 1; // 需要随机的服务器个数
-	int range = Main.NUM_NET; // 随机范围，即网络节点数
+	int cost;
+	int size; // 需要随机的服务器个数
+	int range; // 随机范围，即网络节点数
 	List<Integer> server_location = new ArrayList<>();
-	public int cost;
 
 	public Unit() {
+		size = Main.NUM_CONSUMER - 1;
+		range = Main.NUM_NET;
 		initLocation();
 		while (!checkValid()) {
 			initLocation();
@@ -30,7 +32,6 @@ public class Unit {
 			}
 			server_location.add(tmp);
 		}
-
 	}
 
 	public boolean checkValid() {
@@ -38,7 +39,9 @@ public class Unit {
 	}
 
 	public void calculateCost() {
-		cost = new Random().nextInt(1000);
+		for (int location : server_location) {
+			cost += location;
+		}
 	}
 
 	public void printUnit(int n) {

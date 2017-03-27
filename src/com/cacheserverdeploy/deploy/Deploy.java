@@ -22,7 +22,7 @@ public class Deploy {
 		group.initGroup();
 		group.evolution();
 
-		return new String[] { Main.MIN_COST.toString(), "\r\n", "0 8 0 20" };
+		return new String[] { new Integer(Main.MIN_COST).toString(), "\r\n", "0 8 0 20" };
 	}
 
 }

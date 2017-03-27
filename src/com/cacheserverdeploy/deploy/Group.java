@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 public class Group {
 
@@ -56,12 +57,58 @@ public class Group {
 	}
 
 	private void cross(Unit u1, Unit u2) {
-		// TODO
+		// TODO 考虑交叉时服务器位置的重复
+		int range = Math.min(u1.size, u2.size);
+		int crossPoint = new Random().nextInt(range);
+		Random random = new Random();
+		for (int i = 0; i < crossPoint; i++) {
+			int temp1 = u1.server_location.get(i);
+			int temp2 = u2.server_location.get(i);
+
+			while (!checkRepeat(temp2, u1.server_location, crossPoint)) {
+				temp2 = random.nextInt(range);
+			}
+			u1.server_location.set(i, temp2);
+			while (!checkRepeat(temp1, u2.server_location, crossPoint)) {
+				temp1 = random.nextInt(range);
+			}
+			u2.server_location.set(i, temp1);
+		}
+		if (u1.checkValid()) {
+			u1.calculateCost();
+		} else {
+			u1.server_location = group.get(0).server_location;
+		}
+		if (u2.checkValid()) {
+			u2.calculateCost();
+		} else {
+			u2.server_location = group.get(0).server_location;
+		}
 	}
 
-	private void variation(int n) {
-		// TODO Auto-generated method stub
+	private boolean checkRepeat(int num, List<Integer> list, int index) {
+		for (int i = index; i < list.size(); i++) {
+			if (num == list.get(i))
+				return false;
+		}
+		return true;
+	}
 
+	private void variation(int gen) {
+		// TODO 一定机率减少服务器节点
+		Random random = new Random();
+		int flag = random.nextInt(GROUP_SIZE);
+		// 在进化后期增大变异概率
+		if (flag <= ((gen > MAX_GENERATION / 2) ? (5 * GROUP_SIZE * VARIATION_RATE) : (GROUP_SIZE * VARIATION_RATE))) {
+			int i = random.nextInt(GROUP_SIZE); // 确定发生变异的个体
+			Unit u = group.get(i);
+			int j = random.nextInt(u.size); // 确定发生变异的位置
+			Integer rm = u.server_location.remove(j);
+			if (u.checkValid())
+				u.calculateCost();
+			else
+				u.server_location.add(rm);
+		}
 	}
 
 	public void printGroup() {
