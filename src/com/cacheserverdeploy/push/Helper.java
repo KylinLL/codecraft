@@ -12,13 +12,13 @@ import com.cacheserverdeploy.push.NetFlow.Builder;
 // http://codecraft.huawei.com/home/detail
 // http://blog.csdn.net/hechenghai/article/details/42719715
 // http://www.cppblog.com/Icyflame/archive/2009/06/24/88448.html
-public class Main {
+public class Helper {
     public static final int MAX_NODE = 10;
     private Scanner scan;
     private int[][] capacity, left, price;
     private int vlen, elen, start, end;
 
-    public Main() {
+    public Helper() {
         capacity = new int[MAX_NODE][MAX_NODE];
         left = new int[MAX_NODE][MAX_NODE];
         price = new int[MAX_NODE][MAX_NODE];
@@ -67,7 +67,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        Main pr = new Main();
+        Helper pr = new Helper();
         pr.init();
         int[][] consumers = { { 4, 12 }, { 5, 3 } };
         int[] sources = { 1, 3 };

@@ -5,11 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import com.filetool.main.Main;
+
 public class NetFlow {
     public static final int MAX_INT = Integer.MAX_VALUE >> 1;
     private final int[][] capacity;
     private final int[][] price;
     private final int[] sinks;
+    private final int[] sinksId;
     private final int[] demands;
     private final int vlen;
     private final int perServerCost;
@@ -22,6 +25,7 @@ public class NetFlow {
         this.capacity = builder.capacity;
         this.price = builder.price;
         this.sinks = builder.sinks;
+        this.sinksId = builder.sinksId;
         this.demands = builder.demands;
         this.perServerCost = builder.perServerCost;
     }
@@ -120,7 +124,7 @@ public class NetFlow {
         @Override
         protected int maxFlow() {
             preflow();
-            Queue<Integer> queue = new LinkedList<>();
+            Queue<Integer> queue = new LinkedList<Integer>();
             boolean[] active = new boolean[vertexLen];
             int u, minHeight;
             for (int i = 0; i < vertexLen; i++) {
@@ -205,7 +209,7 @@ public class NetFlow {
             inq = new boolean[vertexLen];
             flow = new int[vertexLen][vertexLen];
             left = new int[vertexLen][vertexLen];
-            queue = new LinkedList<>();
+            queue = new LinkedList<Integer>();
             for (int i = 0; i < vertexLen; i++) {
                 for (int j = 0; j < vertexLen; j++) {
                     left[i][j] = capacity[i][j];
@@ -263,14 +267,16 @@ public class NetFlow {
             spfa();
             int minCost = 0;
             int maxFlow = 0;
-            List<Line> lines = new ArrayList<>();
+            List<Line> lines = new ArrayList<Line>();
             while (pre[end] != -1) {
                 int minCf = MAX_INT;
                 int u = pre[end], v = end;
-                LinkedList<Integer> path = new LinkedList<>();
+                LinkedList<Integer> path = new LinkedList<Integer>();
                 while (u != -1) {
                     if (v != end) {
                         path.addFirst(v);
+                    } else {
+                        path.addFirst(sinksId[u]);
                     }
                     if (minCf > left[u][v]) {
                         minCf = left[u][v];
@@ -398,6 +404,7 @@ public class NetFlow {
         private int[][] price;
         private int[] sinks;
         private int[] demands;
+        private int[] sinksId;
         private int perServerCost;
 
         private Builder(int vlen) {
@@ -417,8 +424,10 @@ public class NetFlow {
         public Builder setConsumers(int[][] consumers, int num) {
             this.sinks = new int[num];
             this.demands = new int[num];
+            this.sinksId = new int[Main.MAX_NODES];
             for (int i = 0; i < num; i++) {
                 sinks[i] = consumers[i][0];
+                sinksId[sinks[i]] = i;
                 demands[i] = consumers[i][1];
             }
             return this;
@@ -426,16 +435,6 @@ public class NetFlow {
 
         public Builder setServeCost(int cost) {
             perServerCost = cost;
-            return this;
-        }
-
-        public Builder setSinks(int[] sinks) {
-            this.sinks = sinks;
-            return this;
-        }
-
-        public Builder setDemands(int[] demands) {
-            this.demands = demands;
             return this;
         }
 
