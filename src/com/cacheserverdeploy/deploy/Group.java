@@ -17,6 +17,7 @@ public class Group {
 	public static int MAX_GENERATION = 100; // 最大代数，一般为100~500
 
 	List<Unit> group = new ArrayList<>();
+	Random random = new Random();
 
 	public void initGroup() {
 		for (int i = 0; i < GROUP_SIZE; i++) {
@@ -33,13 +34,17 @@ public class Group {
 		int num_cross2 = (int) (GROUP_SIZE * (1 - CROSS_RATE / 2));
 		int num_select = (int) (GROUP_SIZE * SELECT_RATE);
 		int num_abandon = GROUP_SIZE - num_select;
+		int nochange = 0;
 
-		for (int i = 0; i < MAX_GENERATION; i++) {
+		for (int i = 0; i < MAX_GENERATION && nochange < MAX_GENERATION >> 1; i++, nochange++) {
 			System.out.println("generation " + i);
 			// 选择
 			sort();
-			if (Main.MIN_COST > group.get(0).cost)
+			if (Main.MIN_COST > group.get(0).cost) {
 				Main.MIN_COST = group.get(0).cost;
+				Main.BEST_SOLUTION = group.get(0).solution;
+				nochange = 0;
+			}
 			for (int j = 0; j < num_abandon; j++) {
 				group.set(j + num_select, group.get(j).deepCopy());
 			}
@@ -52,8 +57,10 @@ public class Group {
 			System.out.println("Min Cost: " + Main.MIN_COST);
 		}
 		sort();
-		if (Main.MIN_COST > group.get(0).cost)
+		if (Main.MIN_COST > group.get(0).cost) {
 			Main.MIN_COST = group.get(0).cost;
+			Main.BEST_SOLUTION = group.get(0).solution;
+		}
 	}
 
 	private void sort() {
@@ -67,7 +74,6 @@ public class Group {
 
 	private void cross(Unit u1, Unit u2) {
 		// 考虑交叉时服务器位置的重复
-		Random random = new Random();
 		int size1 = u1.size;
 		int size2 = u2.size;
 		int range = Math.min(size1, size2);
@@ -88,13 +94,13 @@ public class Group {
 		if (u1.checkValid()) {
 			u1.calculateCost();
 		} else {
-			u1.server_location = group.get(0).server_location;
+			u1.server_location = group.get(0).server_location.clone();
 		}
-		if (u2.checkValid()) {
-			u2.calculateCost();
-		} else {
-			u2.server_location = group.get(0).server_location;
+
+		while (!u2.checkValid()) {
+			u2.initLocation();
 		}
+		u2.calculateCost();
 	}
 
 	private boolean checkRepeat(int num, int[] source, int size, int index) {
@@ -106,30 +112,48 @@ public class Group {
 	}
 
 	private void variation(int gen) {
-		// 一定机率减少服务器节点
-		Random random = new Random();
+		// 改变或减少服务器节点
 		int flag = random.nextInt(GROUP_SIZE);
 		// 在进化后期增大变异概率
 		if (flag <= ((gen > MAX_GENERATION / 2) ? (5 * GROUP_SIZE * VARIATION_RATE) : (GROUP_SIZE * VARIATION_RATE))) {
 			int i = random.nextInt(GROUP_SIZE); // 确定发生变异的个体
 			Unit u = group.get(i);
 			int j = random.nextInt(u.size); // 确定发生变异的位置
-			// Integer rm = u.server_location.remove(j);
-			int[] oldSource = u.server_location;
-			int[] newSource = new int[u.size - 1];
-			for (int k = 0; k < u.size; k++) {
-				if (k < j)
-					newSource[k] = oldSource[k];
-				else if (k > j)
-					newSource[k - 1] = oldSource[k];
-			}
-			u.server_location = newSource;
-			if (u.checkValid()) {
-				u.calculateCost();
-				u.size--;
-			} else {
-				u.server_location = oldSource;
-			}
+			if (flag % 2 == 0)
+				minusServer(u, j);
+			else
+				changeServer(u, j);
+		}
+	}
+
+	private void minusServer(Unit u, int index) {
+
+		int[] oldSource = u.server_location;
+		int[] newSource = new int[u.size - 1];
+		for (int k = 0; k < u.size; k++) {
+			if (k < index)
+				newSource[k] = oldSource[k];
+			else if (k > index)
+				newSource[k - 1] = oldSource[k];
+		}
+		u.server_location = newSource;
+		if (u.checkValid()) {
+			u.calculateCost();
+			u.size--;
+		} else {
+			u.server_location = oldSource;
+		}
+	}
+
+	private void changeServer(Unit u, int index) {
+
+		int oldServer = u.server_location[index];
+		u.server_location[index] = random.nextInt(Main.NUM_NET);
+
+		if (u.checkValid()) {
+			u.calculateCost();
+		} else {
+			u.server_location[index] = oldServer;
 		}
 	}
 

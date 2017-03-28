@@ -18,10 +18,8 @@ public class Unit {
 		range = Main.NUM_NET;
 		server_location = new int[size];
 		initLocation();
-		// int cnt = 0;
 		System.out.println("初始化Unit...");
 		while (!checkValid()) {
-			// System.out.println("kkkkkkkkkkkkkkkkkk" + cnt++);
 			initLocation();
 		}
 		calculateCost();
@@ -31,10 +29,15 @@ public class Unit {
 		Random random = new Random();
 		for (int i = 0; i < size; i++) {
 			int tmp = random.nextInt(range);
+			// 如果随机出来的位置权重小于平均值，则再随机一次，仅一次
+			if (Deploy.weight[tmp] < Deploy.avg_weight)
+				tmp = random.nextInt(range);
 			int j = 0;
 			while (j < i) {
 				if (tmp == server_location[j]) {
 					tmp = random.nextInt(range);
+					if (Deploy.weight[tmp] < Deploy.avg_weight)
+						tmp = random.nextInt(range);
 					j = 0;
 				} else {
 					j++;
@@ -45,10 +48,6 @@ public class Unit {
 	}
 
 	public boolean checkValid() {
-		// int[] source = new int[server_location.size()];
-		// for (int i = 0; i < server_location.size(); i++) {
-		// source[i] = server_location.get(i);
-		// }
 		Deploy.flow.newServers(server_location);
 		return Deploy.flow.meetDemands();
 	}
@@ -72,7 +71,7 @@ public class Unit {
 		copy.cost = this.cost;
 		copy.size = this.size;
 		copy.range = this.range;
-		copy.server_location = this.server_location;
+		copy.server_location = this.server_location.clone();
 		return copy;
 	}
 
