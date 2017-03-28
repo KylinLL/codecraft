@@ -21,6 +21,8 @@ public class Group {
 	public void initGroup() {
 		for (int i = 0; i < GROUP_SIZE; i++) {
 			Unit u = new Unit();
+			u.init();
+			u.printUnit(i);
 			group.add(u);
 		}
 	}
@@ -65,21 +67,23 @@ public class Group {
 
 	private void cross(Unit u1, Unit u2) {
 		// 考虑交叉时服务器位置的重复
-		int range = Math.min(u1.size, u2.size);
-		int crossPoint = new Random().nextInt(range);
 		Random random = new Random();
+		int size1 = u1.size;
+		int size2 = u2.size;
+		int range = Math.min(size1, size2);
+		int crossPoint = random.nextInt(range);
 		for (int i = 0; i < crossPoint; i++) {
-			int temp1 = u1.server_location.get(i);
-			int temp2 = u2.server_location.get(i);
+			int temp1 = u1.server_location[i];
+			int temp2 = u2.server_location[i];
 
-			while (!checkRepeat(temp2, u1.server_location, crossPoint)) {
-				temp2 = random.nextInt(range);
+			while (!checkRepeat(temp2, u1.server_location, size1, crossPoint)) {
+				temp2 = random.nextInt(Main.NUM_NET);
 			}
-			u1.server_location.set(i, temp2);
-			while (!checkRepeat(temp1, u2.server_location, crossPoint)) {
-				temp1 = random.nextInt(range);
+			u1.server_location[i] = temp2;
+			while (!checkRepeat(temp1, u2.server_location, size2, crossPoint)) {
+				temp1 = random.nextInt(Main.NUM_NET);
 			}
-			u2.server_location.set(i, temp1);
+			u2.server_location[i] = temp1;
 		}
 		if (u1.checkValid()) {
 			u1.calculateCost();
@@ -93,9 +97,9 @@ public class Group {
 		}
 	}
 
-	private boolean checkRepeat(int num, List<Integer> list, int index) {
-		for (int i = index; i < list.size(); i++) {
-			if (num == list.get(i))
+	private boolean checkRepeat(int num, int[] source, int size, int index) {
+		for (int i = index; i < size; i++) {
+			if (num == source[i])
 				return false;
 		}
 		return true;
@@ -110,13 +114,21 @@ public class Group {
 			int i = random.nextInt(GROUP_SIZE); // 确定发生变异的个体
 			Unit u = group.get(i);
 			int j = random.nextInt(u.size); // 确定发生变异的位置
-			Integer rm = u.server_location.remove(j);
-			u.size--;
+			// Integer rm = u.server_location.remove(j);
+			int[] oldSource = u.server_location;
+			int[] newSource = new int[u.size - 1];
+			for (int k = 0; k < u.size; k++) {
+				if (k < j)
+					newSource[k] = oldSource[k];
+				else if (k > j)
+					newSource[k - 1] = oldSource[k];
+			}
+			u.server_location = newSource;
 			if (u.checkValid()) {
 				u.calculateCost();
+				u.size--;
 			} else {
-				u.server_location.add(rm);
-				u.size++;
+				u.server_location = oldSource;
 			}
 		}
 	}
