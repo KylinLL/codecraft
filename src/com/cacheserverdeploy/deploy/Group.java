@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
+import com.filetool.main.Main;
+
 public class Group {
 
 	public static int GROUP_SIZE = 100; // 群体规模，即群体中个体的数量，一般为20~100
@@ -19,7 +21,6 @@ public class Group {
 	public void initGroup() {
 		for (int i = 0; i < GROUP_SIZE; i++) {
 			Unit u = new Unit();
-			u.printUnit(i);
 			group.add(u);
 		}
 	}
@@ -32,10 +33,13 @@ public class Group {
 		int num_abandon = GROUP_SIZE - num_select;
 
 		for (int i = 0; i < MAX_GENERATION; i++) {
+			System.out.println("generation " + i);
 			// 选择
 			sort();
+			if (Main.MIN_COST > group.get(0).cost)
+				Main.MIN_COST = group.get(0).cost;
 			for (int j = 0; j < num_abandon; j++) {
-				group.set(j + num_select, group.get(j));
+				group.set(j + num_select, group.get(j).deepCopy());
 			}
 			// 交叉
 			for (int j = 0; j < num_cross; j++) {
@@ -43,8 +47,11 @@ public class Group {
 			}
 			// 变异
 			variation(i);
+			System.out.println("Min Cost: " + Main.MIN_COST);
 		}
 		sort();
+		if (Main.MIN_COST > group.get(0).cost)
+			Main.MIN_COST = group.get(0).cost;
 	}
 
 	private void sort() {
@@ -57,7 +64,7 @@ public class Group {
 	}
 
 	private void cross(Unit u1, Unit u2) {
-		// TODO 考虑交叉时服务器位置的重复
+		// 考虑交叉时服务器位置的重复
 		int range = Math.min(u1.size, u2.size);
 		int crossPoint = new Random().nextInt(range);
 		Random random = new Random();
@@ -95,7 +102,7 @@ public class Group {
 	}
 
 	private void variation(int gen) {
-		// TODO 一定机率减少服务器节点
+		// 一定机率减少服务器节点
 		Random random = new Random();
 		int flag = random.nextInt(GROUP_SIZE);
 		// 在进化后期增大变异概率
@@ -104,10 +111,13 @@ public class Group {
 			Unit u = group.get(i);
 			int j = random.nextInt(u.size); // 确定发生变异的位置
 			Integer rm = u.server_location.remove(j);
-			if (u.checkValid())
+			u.size--;
+			if (u.checkValid()) {
 				u.calculateCost();
-			else
+			} else {
 				u.server_location.add(rm);
+				u.size++;
+			}
 		}
 	}
 
