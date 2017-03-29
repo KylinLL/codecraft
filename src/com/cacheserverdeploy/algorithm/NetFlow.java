@@ -288,6 +288,17 @@ public class NetFlow {
 					v = u;
 					u = pre[v];
 				}
+				int server = path.peek();
+				boolean find = false;
+				for(int i=0;i<sources.length;i++){
+				    if(sources[i] == server){
+				        find = true;
+				        break;
+				    }
+				}
+				if(!find){
+				    System.out.println("\n\n\n\n\n\n\nNONONONONO\n\n\n\n\n\n\n");
+				}
 				maxFlow += minCf;
 				if (minCf != Main.MAX_INT) {
 					lines.add(new Line(path, minCf));
@@ -387,7 +398,7 @@ public class NetFlow {
 			builder.append("minimum cost: " + cost + "\n");
 			for (int i = 0; i < lines.size(); i++) {
 				builder.append((i + 1) + ") ");
-				builder.append(lines.get(i));
+				builder.append(lines.get(i)+"\n");
 			}
 			return builder.toString();
 		}
