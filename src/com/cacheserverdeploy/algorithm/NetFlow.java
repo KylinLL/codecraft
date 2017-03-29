@@ -320,18 +320,17 @@ public class NetFlow {
                 if (minCf != Main.MAX_INT) {
                     maxFlow += minCf;
                     lines.add(new Line(path, minCf));
-
-                    int server = path.peek();
-                    boolean find = false;
-                    for (int i = 0; i < sources.length; i++) {
-                        if (sources[i] == server) {
-                            find = true;
-                            break;
-                        }
-                    }
-                    if (!find) {
-                        System.out.println("\n\n\n\n\n\n\nNONONONONO\n\n\n\n\n\n\n");
-                    }
+//                    int server = path.peek();
+//                    boolean find = false;
+//                    for (int i = 0; i < sources.length; i++) {
+//                        if (sources[i] == server) {
+//                            find = true;
+//                            break;
+//                        }
+//                    }
+//                    if (!find) {
+//                        System.out.println("\n\n\n\n\n\n\nNONONONONO\n\n\n\n\n\n\n");
+//                    }
                 }
                 u = pre[end];
                 v = end;

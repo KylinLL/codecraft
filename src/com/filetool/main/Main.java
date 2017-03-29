@@ -47,6 +47,7 @@ public class Main {
 		// 读取输入文件
 		String[] graphContent = FileUtil.read(graphFilePath, null);
 		read(graphFilePath);
+		initSolution();
 
 		// 功能实现入口
 		String[] resultContents = Deploy.deployServer(graphContent);
@@ -78,19 +79,6 @@ public class Main {
 		NUM_PATH = scan.nextInt();
 		NUM_CONSUMER = scan.nextInt();
 		PRICE_PER_SERVER = scan.nextInt();
-		// 初始解
-		int init_cost = NUM_CONSUMER * PRICE_PER_SERVER;
-		BEST_UNIT = new Unit();
-		List<Line> lines = new ArrayList<Line>();
-		for (int i = 0; i < NUM_CONSUMER; i++) {
-			List<Integer> vertexs = new ArrayList<Integer>();
-			vertexs.add(CONSUMER[i][0]);
-			vertexs.add(i);
-			Line line = new Line(vertexs, CONSUMER[i][1]);
-			lines.add(line);
-		}
-		Solution solution = new Solution(init_cost, new ArrayList<Line>());
-		BEST_UNIT.setSolution(solution);
 
 		for (int i = 0; i < NUM_PATH; i++) {
 			int start = scan.nextInt();
@@ -110,6 +98,21 @@ public class Main {
 			CONSUMER[id_consumer][1] = bandwidth_need;
 		}
 		scan.close();
+	}
+
+	private static void initSolution() {
+		int init_cost = NUM_CONSUMER * PRICE_PER_SERVER;
+		BEST_UNIT = new Unit();
+		List<Line> lines = new ArrayList<Line>();
+		for (int i = 0; i < NUM_CONSUMER; i++) {
+			List<Integer> vertexs = new ArrayList<Integer>();
+			vertexs.add(CONSUMER[i][0]);
+			vertexs.add(i);
+			Line line = new Line(vertexs, CONSUMER[i][1]);
+			lines.add(line);
+		}
+		Solution solution = new Solution(init_cost, lines);
+		BEST_UNIT.setSolution(solution);
 	}
 
 }
