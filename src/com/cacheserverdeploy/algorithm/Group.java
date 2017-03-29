@@ -16,10 +16,9 @@ public class Group {
     public static int MAX_GENERATION = 256; // 最大代数，一般为100~500
     public static volatile boolean stop = false;
 
-    private List<Unit> group = new ArrayList<>();
+    private List<Unit> group = new ArrayList<Unit>();
 
     public Group() {
-        group = new ArrayList<>(GROUP_SIZE);
         for (int i = 0; i < GROUP_SIZE; i++) {
             group.add(Unit.newRandomUnit(Main.NUM_NET));
         }

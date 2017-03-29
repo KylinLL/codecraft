@@ -19,7 +19,7 @@ public class NetFlow {
 
     private Strategy strategy;
     private int[] sources;
-    private Set<Integer> givenServers = new HashSet<>();
+    private Set<Integer> givenServers = new HashSet<Integer>();
 
     private NetFlow(Builder builder) {
         this.vlen = builder.vlen;
