@@ -1,17 +1,18 @@
-package com.cacheserverdeploy.push;
+package com.cacheserverdeploy.algorithm;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-import com.cacheserverdeploy.push.NetFlow.Builder;
+import com.cacheserverdeploy.algorithm.NetFlow.Builder;
 
 // https://www.topcoder.com/community/data-science/data-science-tutorials/push-relabel-approach-to-the-maximum-flow-problem/
 // http://blog.csdn.net/bbbbaai/article/details/46538383
 // http://codecraft.huawei.com/home/detail
 // http://blog.csdn.net/hechenghai/article/details/42719715
 // http://www.cppblog.com/Icyflame/archive/2009/06/24/88448.html
+@Deprecated
 public class Helper {
     public static final int MAX_NODE = 10;
     private Scanner scan;

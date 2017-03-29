@@ -1,4 +1,4 @@
-package com.cacheserverdeploy.push;
+package com.cacheserverdeploy.algorithm;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -8,7 +8,6 @@ import java.util.Queue;
 import com.filetool.main.Main;
 
 public class NetFlow {
-    public static final int MAX_INT = Integer.MAX_VALUE >> 1;
     private final int[][] capacity;
     private final int[][] price;
     private final int[] sinks;
@@ -38,7 +37,7 @@ public class NetFlow {
         return strategy.getSolution();
     }
 
-    public void newServers(int[] newSources) {
+    public NetFlow newServers(int[] newSources) {
         for (int i = 0; sources != null && i < sources.length; i++) {
             capacity[vlen][sources[i]] = 0;
             capacity[sources[i]][vlen] = 0;
@@ -47,6 +46,7 @@ public class NetFlow {
         }
         this.sources = newSources;
         this.strategy = new AugmentPathStrategy();
+        return this;
     }
 
     public static Builder builder(int vlen) {
@@ -135,7 +135,7 @@ public class NetFlow {
             }
             while (!queue.isEmpty()) {
                 u = queue.peek();
-                minHeight = Integer.MAX_VALUE;
+                minHeight = Main.MAX_INT;
                 for (int i = 0; excess[u] > 0 && i < vertexLen; i++) {
                     if (left[u][i] > 0) {
                         if (height[u] > height[i]) {
@@ -168,10 +168,10 @@ public class NetFlow {
         @Override
         protected void addSuperSource() {
             for (int i = 0; i < sources.length; i++) {
-                capacity[vlen][sources[i]] = MAX_INT;
-                capacity[sources[i]][vlen] = MAX_INT;
+                capacity[vlen][sources[i]] = Main.MAX_INT;
+                capacity[sources[i]][vlen] = Main.MAX_INT;
                 price[vlen][sources[i]] = 0;
-                price[sources[i]][vlen] = MAX_INT;
+                price[sources[i]][vlen] = Main.MAX_INT;
             }
         }
 
@@ -183,7 +183,7 @@ public class NetFlow {
                 capacity[sinks[i]][vlen + 1] = demands[i];
                 capacity[vlen + 1][sinks[i]] = demands[i];
                 price[sinks[i]][vlen + 1] = 0;
-                price[vlen + 1][sinks[i]] = MAX_INT;
+                price[vlen + 1][sinks[i]] = Main.MAX_INT;
             }
             return total;
         }
@@ -220,7 +220,7 @@ public class NetFlow {
         private void reset() {
             queue.clear();
             for (int i = 0; i < vertexLen; i++) {
-                cost[i] = Integer.MAX_VALUE;
+                cost[i] = Main.MAX_INT;
                 pre[i] = -1;
                 inq[i] = false;
             }
@@ -239,7 +239,7 @@ public class NetFlow {
                     if (left[cur][i] == 0) {
                         continue;
                     }
-                    if (price[cur][i] == MAX_INT) {
+                    if (price[cur][i] == Main.MAX_INT) {
                         price[cur][i] = -price[i][cur];
                     }
                     if (cost[i] > cost[cur] + price[cur][i]) {
@@ -269,7 +269,7 @@ public class NetFlow {
             int maxFlow = 0;
             List<Line> lines = new ArrayList<Line>();
             while (pre[end] != -1) {
-                int minCf = MAX_INT;
+                int minCf = Main.MAX_INT;
                 int u = pre[end], v = end;
                 LinkedList<Integer> path = new LinkedList<Integer>();
                 while (u != -1) {
@@ -285,7 +285,7 @@ public class NetFlow {
                     u = pre[v];
                 }
                 maxFlow += minCf;
-                if (minCf != MAX_INT) {
+                if (minCf != Main.MAX_INT) {
                     lines.add(new Line(path, minCf));
                 }
                 u = pre[end];
@@ -309,10 +309,10 @@ public class NetFlow {
         @Override
         protected void addSuperSource() {
             for (int i = 0; i < sources.length; i++) {
-                capacity[vlen][sources[i]] = MAX_INT;
+                capacity[vlen][sources[i]] = Main.MAX_INT;
                 capacity[sources[i]][vlen] = 0;
                 price[vlen][sources[i]] = 0;
-                price[sources[i]][vlen] = MAX_INT;
+                price[sources[i]][vlen] = Main.MAX_INT;
             }
         }
 
@@ -324,7 +324,7 @@ public class NetFlow {
                 capacity[sinks[i]][vlen + 1] = demands[i];
                 capacity[vlen + 1][sinks[i]] = 0;
                 price[sinks[i]][vlen + 1] = 0;
-                price[vlen + 1][sinks[i]] = MAX_INT;
+                price[vlen + 1][sinks[i]] = Main.MAX_INT;
             }
             return total;
         }
@@ -363,7 +363,7 @@ public class NetFlow {
 
     }
 
-    public static class Solution implements Comparable<Solution> {
+    public static class Solution {
         private final int cost;
         private final List<Line> lines;
 
@@ -389,11 +389,6 @@ public class NetFlow {
                 builder.append(lines.get(i));
             }
             return builder.toString();
-        }
-
-        @Override
-        public int compareTo(Solution o) {
-            return cost - o.getCost();
         }
 
     }

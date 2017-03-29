@@ -16,6 +16,7 @@ import com.filetool.util.LogUtil;
  * @since [产品/模块版本]
  */
 public class Main {
+    public static final int MAX_INT = Integer.MAX_VALUE >> 1;
     public static final int MAX_NODES = 1002;
     public static final int MAX_COMSUMERS_NODES = 501;
     public static int NUM_NET; // 网络节点
