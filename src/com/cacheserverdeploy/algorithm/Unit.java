@@ -1,6 +1,7 @@
 package com.cacheserverdeploy.algorithm;
 
 import java.util.Random;
+import java.util.Set;
 
 import com.cacheserverdeploy.algorithm.NetFlow.Solution;
 import com.cacheserverdeploy.deploy.Deploy;
@@ -8,22 +9,22 @@ import com.filetool.main.Main;
 
 public class Unit implements Comparable<Unit>, Cloneable {
 	private static final Random random = new Random();
-	private int size; // 需要随机的服务器个数
+	// private int size; // 需要随机的服务器个数
 	private int[] serverLocation;
 	private Solution solution;
 
 	public Unit() {
-		size = Main.NUM_CONSUMER - 1;
+		int size = Main.NUM_CONSUMER - 2;
 		serverLocation = new int[size];
 	}
 
 	public int getSize() {
-		return size;
+		return serverLocation.length;
 	}
 
-	public void setSize(int size) {
-		this.size = size;
-	}
+	// public void setSize(int size) {
+	// this.size = size;
+	// }
 
 	public int[] getServerLocation() {
 		return serverLocation;
@@ -47,6 +48,19 @@ public class Unit implements Comparable<Unit>, Cloneable {
 
 	public void setSolution(Solution solution) {
 		this.solution = solution;
+
+		if (solution != null && solution.getRemain() != null && !solution.getRemain().isEmpty()) {
+			Set<Integer> remain = solution.getRemain();
+			int size = remain.size();
+			int[] newSource = new int[serverLocation.length - size];
+			int i = 0;
+			for (int location : serverLocation) {
+				if (!remain.contains(location)) {
+					newSource[i++] = location;
+				}
+			}
+			serverLocation = newSource;
+		}
 	}
 
 	public void fillSolution() {
@@ -74,7 +88,7 @@ public class Unit implements Comparable<Unit>, Cloneable {
 	}
 
 	public static Unit newRandomUnit(int range) {
-		System.out.println("初始化Unit...");
+//		System.out.println("初始化Unit...");
 		Unit ret = new Unit();
 		initServerLocation(ret, range);
 		while (!ret.isValid()) {

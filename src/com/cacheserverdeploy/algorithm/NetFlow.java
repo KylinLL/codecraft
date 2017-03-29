@@ -36,7 +36,7 @@ public class NetFlow {
     }
 
     public Solution getSolution() {
-        System.out.println("COST: " + (null == strategy.getSolution() ? "NULL" : "" + strategy.getSolution().getCost()));
+//        System.out.println("COST: " + (null == strategy.getSolution() ? "NULL" : "" + strategy.getSolution().getCost()));
         return strategy.getSolution();
     }
 

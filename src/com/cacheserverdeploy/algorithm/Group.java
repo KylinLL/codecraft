@@ -13,7 +13,7 @@ public class Group {
 	public static double CROSS_RATE = 0.8; // 交叉概率，一般为0.4~0.9
 	public static double VARIATION_RATE = 0.2; // 变异概率，一般为0.001~0.1
 	public static double SELECT_RATE = 0.6; // 选择时保留的比例
-	public static int MAX_GENERATION = 128; // 最大代数，一般为100~500
+	public static int MAX_GENERATION = 256; // 最大代数，一般为100~500
 
 	private List<Unit> group = new ArrayList<>();
 
@@ -33,13 +33,15 @@ public class Group {
 
 		int nochange = 0;
 		for (int i = 0; i < MAX_GENERATION && nochange < MAX_GENERATION >> 2; i++, nochange++) {
-			System.out.println("generation " + i);
+//			System.out.println("generation " + i);
 			// 选择
 			Collections.sort(group);
 			if (Main.BEST_UNIT.compareTo(group.get(0)) > 0) {
 				Main.BEST_UNIT = group.get(0);
 				nochange = 0;
 			}
+//			System.out.println("Now best:" + group.get(0).getCost());
+//			System.out.println(group.get(0).getSolution());
 			for (int j = 0; j < num_abandon; j++) {
 				group.set(j + num_select, group.get(j).clone());
 			}
@@ -49,7 +51,7 @@ public class Group {
 			}
 			// 变异
 			variation(i);
-			System.out.println("Min Cost: " + Main.BEST_UNIT.getCost());
+//			System.out.println("Min Cost: " + Main.BEST_UNIT.getCost());
 		}
 		Collections.sort(group);
 		if (Main.BEST_UNIT.compareTo(group.get(0)) > 0) {
@@ -123,7 +125,7 @@ public class Group {
 		u.setServerLocation(newSource);
 		if (u.isValid()) {
 			u.fillSolution();
-			u.setSize(u.getSize() - 1);
+			// u.setSize(u.getSize() - 1);
 		} else {
 			u.setServerLocation(oldSource);
 		}
