@@ -3,6 +3,7 @@ package com.filetool.main;
 import java.io.File;
 import java.util.Scanner;
 
+import com.cacheserverdeploy.algorithm.Unit;
 import com.cacheserverdeploy.deploy.Deploy;
 import com.filetool.util.FileUtil;
 import com.filetool.util.LogUtil;
@@ -26,7 +27,7 @@ public class Main {
     public static int[][] MATRIX_NETWORK = new int[MAX_NODES][MAX_NODES]; // 带宽,capacity
     public static int[][] MATRIX_COST = new int[MAX_NODES][MAX_NODES]; // 带宽价格,price
     public static int[][] CONSUMER = new int[MAX_COMSUMERS_NODES][2]; // sink
-    public static int MIN_COST;
+    public static Unit BEST_UNIT;
 
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
@@ -73,7 +74,11 @@ public class Main {
         NUM_PATH = scan.nextInt();
         NUM_CONSUMER = scan.nextInt();
         PRICE_PER_SERVER = scan.nextInt();
-        MIN_COST = NUM_CONSUMER * PRICE_PER_SERVER;
+        // 初始解
+        int MIN_COST = NUM_CONSUMER * PRICE_PER_SERVER;
+        BEST_UNIT = new Unit();
+        // TODO init best unit
+        // BEST_UNIT = new Solution(MIN_COST, new ArrayList<Line>());
 
         for (int i = 0; i < NUM_PATH; i++) {
             int start = scan.nextInt();

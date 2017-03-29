@@ -7,7 +7,7 @@ import com.cacheserverdeploy.deploy.Deploy;
 import com.filetool.main.Main;
 
 public class Unit implements Comparable<Unit>, Cloneable {
-    private static final Random random = new Random();;
+    private static final Random random = new Random();
     private int size; // 需要随机的服务器个数
     private int[] serverLocation;
     private Solution solution;
@@ -87,10 +87,15 @@ public class Unit implements Comparable<Unit>, Cloneable {
         int[] server_location = unit.getServerLocation();
         for (int i = 0; i < unit.getSize(); i++) {
             int tmp = random.nextInt(range);
+            // 如果随机出来的位置权重小于平均值，则再随机一次，仅一次
+            if (Deploy.weight[tmp] < Deploy.avg_weight)
+                tmp = random.nextInt(range);
             int j = 0;
             while (j < i) {
                 if (tmp == server_location[j]) {
                     tmp = random.nextInt(range);
+                    if (Deploy.weight[tmp] < Deploy.avg_weight)
+                        tmp = random.nextInt(range);
                     j = 0;
                 } else {
                     j++;
