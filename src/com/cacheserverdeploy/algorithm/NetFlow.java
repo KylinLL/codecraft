@@ -8,435 +8,439 @@ import java.util.Queue;
 import com.filetool.main.Main;
 
 public class NetFlow {
-    private final int[][] capacity;
-    private final int[][] price;
-    private final int[] sinks;
-    private final int[] sinksId;
-    private final int[] demands;
-    private final int vlen;
-    private final int perServerCost;
+	private final int[][] capacity;
+	private final int[][] price;
+	private final int[] sinks;
+	private final int[] sinksId;
+	private final int[] demands;
+	private final int vlen;
+	private final int perServerCost;
 
-    private Strategy strategy;
-    private int[] sources;
+	private Strategy strategy;
+	private int[] sources;
 
-    private NetFlow(Builder builder) {
-        this.vlen = builder.vlen;
-        this.capacity = builder.capacity;
-        this.price = builder.price;
-        this.sinks = builder.sinks;
-        this.sinksId = builder.sinksId;
-        this.demands = builder.demands;
-        this.perServerCost = builder.perServerCost;
-    }
+	private NetFlow(Builder builder) {
+		this.vlen = builder.vlen;
+		this.capacity = builder.capacity;
+		this.price = builder.price;
+		this.sinks = builder.sinks;
+		this.sinksId = builder.sinksId;
+		this.demands = builder.demands;
+		this.perServerCost = builder.perServerCost;
+	}
 
-    public boolean meetDemands() {
-        return strategy.meetDemands();
-    }
+	public boolean meetDemands() {
+		return strategy.meetDemands();
+	}
 
-    public Solution getSolution() {
-        return strategy.getSolution();
-    }
+	public Solution getSolution() {
+		return strategy.getSolution();
+	}
 
-    public NetFlow newServers(int[] newSources) {
-        for (int i = 0; sources != null && i < sources.length; i++) {
-            capacity[vlen][sources[i]] = 0;
-            capacity[sources[i]][vlen] = 0;
-            price[vlen][sources[i]] = 0;
-            price[sources[i]][vlen] = 0;
-        }
-        this.sources = newSources;
-        this.strategy = new AugmentPathStrategy();
-        return this;
-    }
+	public int[] getSources() {
+		return sources;
+	}
 
-    public static Builder builder(int vlen) {
-        return new Builder(vlen);
-    }
+	public NetFlow newServers(int[] newSources) {
+		for (int i = 0; sources != null && i < sources.length; i++) {
+			capacity[vlen][sources[i]] = 0;
+			capacity[sources[i]][vlen] = 0;
+			price[vlen][sources[i]] = 0;
+			price[sources[i]][vlen] = 0;
+		}
+		this.sources = newSources;
+		this.strategy = new AugmentPathStrategy();
+		return this;
+	}
 
-    private abstract class Strategy {
-        private int totalDemands;
+	public static Builder builder(int vlen) {
+		return new Builder(vlen);
+	}
 
-        public Strategy() {
-            totalDemands = addSuperSink();
-            addSuperSource();
-        }
+	private abstract class Strategy {
+		private int totalDemands;
 
-        public boolean meetDemands() {
-            return totalDemands == maxFlow();
-        }
+		public Strategy() {
+			totalDemands = addSuperSink();
+			addSuperSource();
+		}
 
-        protected abstract void addSuperSource();
+		public boolean meetDemands() {
+			return totalDemands == maxFlow();
+		}
 
-        protected abstract int addSuperSink();
+		protected abstract void addSuperSource();
 
-        protected abstract int maxFlow();
+		protected abstract int addSuperSink();
 
-        public abstract Solution getSolution();
-    }
+		protected abstract int maxFlow();
 
-    // https://www.topcoder.com/community/data-science/data-science-tutorials/push-relabel-approach-to-the-maximum-flow-problem/
-    @SuppressWarnings("unused")
-    private class PushRelabelStrategy extends Strategy {
-        private final int[][] flow, left;
-        private final int[] excess, height;
-        private final int vertexLen, start, end;
+		public abstract Solution getSolution();
+	}
 
-        public PushRelabelStrategy() {
-            super();
-            vertexLen = vlen + 2;
-            start = vlen;
-            end = vlen + 1;
-            flow = new int[vertexLen][vertexLen];
-            left = new int[vertexLen][vertexLen];
-            excess = new int[vertexLen];
-            height = new int[vertexLen];
-            for (int i = 0; i < vertexLen; i++) {
-                for (int j = 0; j < vertexLen; j++) {
-                    left[i][j] = capacity[i][j];
-                }
-            }
-        }
+	// https://www.topcoder.com/community/data-science/data-science-tutorials/push-relabel-approach-to-the-maximum-flow-problem/
+	@SuppressWarnings("unused")
+	private class PushRelabelStrategy extends Strategy {
+		private final int[][] flow, left;
+		private final int[] excess, height;
+		private final int vertexLen, start, end;
 
-        private void preflow() {
-            height[start] = vertexLen;
-            for (int i = 0; i < vertexLen; i++) {
-                if (capacity[start][i] > 0) {
-                    flow[start][i] = capacity[start][i];
-                    flow[i][start] = -capacity[start][i];
-                    excess[i] = capacity[start][i];
-                    excess[start] -= capacity[start][i];
-                    left[start][i] = capacity[start][i] - flow[start][i];
-                    left[i][start] = capacity[i][start] - flow[i][start];
-                }
-            }
-        }
+		public PushRelabelStrategy() {
+			super();
+			vertexLen = vlen + 2;
+			start = vlen;
+			end = vlen + 1;
+			flow = new int[vertexLen][vertexLen];
+			left = new int[vertexLen][vertexLen];
+			excess = new int[vertexLen];
+			height = new int[vertexLen];
+			for (int i = 0; i < vertexLen; i++) {
+				for (int j = 0; j < vertexLen; j++) {
+					left[i][j] = capacity[i][j];
+				}
+			}
+		}
 
-        private void push(int u, int v) {
-            int push = Math.min(excess[u], left[u][v]);
-            flow[u][v] += push;
-            flow[v][u] = -flow[u][v];
-            excess[u] -= push;
-            excess[v] += push;
-            left[u][v] = capacity[u][v] - flow[u][v];
-            left[v][u] = capacity[v][u] - flow[v][u];
-        }
+		private void preflow() {
+			height[start] = vertexLen;
+			for (int i = 0; i < vertexLen; i++) {
+				if (capacity[start][i] > 0) {
+					flow[start][i] = capacity[start][i];
+					flow[i][start] = -capacity[start][i];
+					excess[i] = capacity[start][i];
+					excess[start] -= capacity[start][i];
+					left[start][i] = capacity[start][i] - flow[start][i];
+					left[i][start] = capacity[i][start] - flow[i][start];
+				}
+			}
+		}
 
-        @Override
-        protected int maxFlow() {
-            preflow();
-            Queue<Integer> queue = new LinkedList<Integer>();
-            boolean[] active = new boolean[vertexLen];
-            int u, minHeight;
-            for (int i = 0; i < vertexLen; i++) {
-                if (capacity[start][i] > 0 && i != end) {
-                    queue.offer(i);
-                    active[i] = true;
-                }
-            }
-            while (!queue.isEmpty()) {
-                u = queue.peek();
-                minHeight = Main.MAX_INT;
-                for (int i = 0; excess[u] > 0 && i < vertexLen; i++) {
-                    if (left[u][i] > 0) {
-                        if (height[u] > height[i]) {
-                            push(u, i);
-                            if (!active[i] && i != start && i != end) {
-                                active[i] = true;
-                                queue.offer(i);
-                            }
-                        } else {
-                            minHeight = Math.min(minHeight, height[i]);
-                        }
-                    }
-                }
-                if (excess[u] > 0) {
-                    height[u] = 1 + minHeight;
-                } else {
-                    active[u] = false;
-                    queue.poll();
-                }
-            }
-            return excess[end];
-        }
+		private void push(int u, int v) {
+			int push = Math.min(excess[u], left[u][v]);
+			flow[u][v] += push;
+			flow[v][u] = -flow[u][v];
+			excess[u] -= push;
+			excess[v] += push;
+			left[u][v] = capacity[u][v] - flow[u][v];
+			left[v][u] = capacity[v][u] - flow[v][u];
+		}
 
-        @Override
-        public Solution getSolution() {
+		@Override
+		protected int maxFlow() {
+			preflow();
+			Queue<Integer> queue = new LinkedList<Integer>();
+			boolean[] active = new boolean[vertexLen];
+			int u, minHeight;
+			for (int i = 0; i < vertexLen; i++) {
+				if (capacity[start][i] > 0 && i != end) {
+					queue.offer(i);
+					active[i] = true;
+				}
+			}
+			while (!queue.isEmpty()) {
+				u = queue.peek();
+				minHeight = Main.MAX_INT;
+				for (int i = 0; excess[u] > 0 && i < vertexLen; i++) {
+					if (left[u][i] > 0) {
+						if (height[u] > height[i]) {
+							push(u, i);
+							if (!active[i] && i != start && i != end) {
+								active[i] = true;
+								queue.offer(i);
+							}
+						} else {
+							minHeight = Math.min(minHeight, height[i]);
+						}
+					}
+				}
+				if (excess[u] > 0) {
+					height[u] = 1 + minHeight;
+				} else {
+					active[u] = false;
+					queue.poll();
+				}
+			}
+			return excess[end];
+		}
 
-            return null;
-        }
+		@Override
+		public Solution getSolution() {
 
-        @Override
-        protected void addSuperSource() {
-            for (int i = 0; i < sources.length; i++) {
-                capacity[vlen][sources[i]] = Main.MAX_INT;
-                capacity[sources[i]][vlen] = Main.MAX_INT;
-                price[vlen][sources[i]] = 0;
-                price[sources[i]][vlen] = Main.MAX_INT;
-            }
-        }
+			return null;
+		}
 
-        @Override
-        protected int addSuperSink() {
-            int total = 0;
-            for (int i = 0; i < sinks.length; i++) {
-                total += demands[i];
-                capacity[sinks[i]][vlen + 1] = demands[i];
-                capacity[vlen + 1][sinks[i]] = demands[i];
-                price[sinks[i]][vlen + 1] = 0;
-                price[vlen + 1][sinks[i]] = Main.MAX_INT;
-            }
-            return total;
-        }
+		@Override
+		protected void addSuperSource() {
+			for (int i = 0; i < sources.length; i++) {
+				capacity[vlen][sources[i]] = Main.MAX_INT;
+				capacity[sources[i]][vlen] = Main.MAX_INT;
+				price[vlen][sources[i]] = 0;
+				price[sources[i]][vlen] = Main.MAX_INT;
+			}
+		}
 
-    }
+		@Override
+		protected int addSuperSink() {
+			int total = 0;
+			for (int i = 0; i < sinks.length; i++) {
+				total += demands[i];
+				capacity[sinks[i]][vlen + 1] = demands[i];
+				capacity[vlen + 1][sinks[i]] = demands[i];
+				price[sinks[i]][vlen + 1] = 0;
+				price[vlen + 1][sinks[i]] = Main.MAX_INT;
+			}
+			return total;
+		}
 
-    // http://blog.csdn.net/jarily/article/details/8613208
-    private class AugmentPathStrategy extends Strategy {
-        private final int[][] flow, left;
-        private final int cost[], pre[];
-        private final boolean inq[];
-        private final Queue<Integer> queue;
-        private final int vertexLen, start, end;
-        private Solution solution;
+	}
 
-        public AugmentPathStrategy() {
-            super();
-            vertexLen = vlen + 2;
-            start = vlen;
-            end = vlen + 1;
-            cost = new int[vertexLen];
-            pre = new int[vertexLen];
-            inq = new boolean[vertexLen];
-            flow = new int[vertexLen][vertexLen];
-            left = new int[vertexLen][vertexLen];
-            queue = new LinkedList<Integer>();
-            for (int i = 0; i < vertexLen; i++) {
-                for (int j = 0; j < vertexLen; j++) {
-                    left[i][j] = capacity[i][j];
-                }
-            }
-        }
+	// http://blog.csdn.net/jarily/article/details/8613208
+	private class AugmentPathStrategy extends Strategy {
+		private final int[][] flow, left;
+		private final int cost[], pre[];
+		private final boolean inq[];
+		private final Queue<Integer> queue;
+		private final int vertexLen, start, end;
+		private Solution solution;
 
-        private void reset() {
-            queue.clear();
-            for (int i = 0; i < vertexLen; i++) {
-                cost[i] = Main.MAX_INT;
-                pre[i] = -1;
-                inq[i] = false;
-            }
-        }
+		public AugmentPathStrategy() {
+			super();
+			vertexLen = vlen + 2;
+			start = vlen;
+			end = vlen + 1;
+			cost = new int[vertexLen];
+			pre = new int[vertexLen];
+			inq = new boolean[vertexLen];
+			flow = new int[vertexLen][vertexLen];
+			left = new int[vertexLen][vertexLen];
+			queue = new LinkedList<Integer>();
+			for (int i = 0; i < vertexLen; i++) {
+				for (int j = 0; j < vertexLen; j++) {
+					left[i][j] = capacity[i][j];
+				}
+			}
+		}
 
-        private void spfa() {
-            reset();
-            cost[start] = 0;
-            queue.offer(start);
-            inq[start] = true;
-            int cur;
-            while (!queue.isEmpty()) {
-                cur = queue.poll();
-                inq[cur] = false;
-                for (int i = 0; i < vertexLen; i++) {
-                    if (left[cur][i] == 0) {
-                        continue;
-                    }
-                    if (price[cur][i] == Main.MAX_INT) {
-                        price[cur][i] = -price[i][cur];
-                    }
-                    if (cost[i] > cost[cur] + price[cur][i]) {
-                        cost[i] = cost[cur] + price[cur][i];
-                        pre[i] = cur;
-                        if (!inq[i]) {
-                            queue.offer(i);
-                            inq[i] = true;
-                        }
-                    }
-                }
-            }
-        }
+		private void reset() {
+			queue.clear();
+			for (int i = 0; i < vertexLen; i++) {
+				cost[i] = Main.MAX_INT;
+				pre[i] = -1;
+				inq[i] = false;
+			}
+		}
 
-        @Override
-        public Solution getSolution() {
-            if (null == solution) {
-                maxFlow();
-            }
-            return solution;
-        }
+		private void spfa() {
+			reset();
+			cost[start] = 0;
+			queue.offer(start);
+			inq[start] = true;
+			int cur;
+			while (!queue.isEmpty()) {
+				cur = queue.poll();
+				inq[cur] = false;
+				for (int i = 0; i < vertexLen; i++) {
+					if (left[cur][i] == 0) {
+						continue;
+					}
+					if (price[cur][i] == Main.MAX_INT) {
+						price[cur][i] = -price[i][cur];
+					}
+					if (cost[i] > cost[cur] + price[cur][i]) {
+						cost[i] = cost[cur] + price[cur][i];
+						pre[i] = cur;
+						if (!inq[i]) {
+							queue.offer(i);
+							inq[i] = true;
+						}
+					}
+				}
+			}
+		}
 
-        @Override
-        protected int maxFlow() {
-            spfa();
-            int minCost = 0;
-            int maxFlow = 0;
-            List<Line> lines = new ArrayList<Line>();
-            while (pre[end] != -1) {
-                int minCf = Main.MAX_INT;
-                int u = pre[end], v = end;
-                LinkedList<Integer> path = new LinkedList<Integer>();
-                while (u != -1) {
-                    if (v != end) {
-                        path.addFirst(v);
-                    } else {
-                        path.addFirst(sinksId[u]);
-                    }
-                    if (minCf > left[u][v]) {
-                        minCf = left[u][v];
-                    }
-                    v = u;
-                    u = pre[v];
-                }
-                maxFlow += minCf;
-                if (minCf != Main.MAX_INT) {
-                    lines.add(new Line(path, minCf));
-                }
-                u = pre[end];
-                v = end;
-                while (u != -1) {
-                    minCost += minCf * price[u][v];
-                    flow[u][v] += minCf;
-                    flow[v][u] = -flow[u][v];
-                    left[u][v] = capacity[u][v] - flow[u][v];
-                    left[v][u] = capacity[v][u] - flow[v][u];
-                    v = u;
-                    u = pre[v];
-                }
-                spfa();
-            }
-            minCost += sources.length * perServerCost;
-            solution = new Solution(minCost, lines);
-            return maxFlow;
-        }
+		@Override
+		public Solution getSolution() {
+			if (null == solution) {
+				maxFlow();
+			}
+			return solution;
+		}
 
-        @Override
-        protected void addSuperSource() {
-            for (int i = 0; i < sources.length; i++) {
-                capacity[vlen][sources[i]] = Main.MAX_INT;
-                capacity[sources[i]][vlen] = 0;
-                price[vlen][sources[i]] = 0;
-                price[sources[i]][vlen] = Main.MAX_INT;
-            }
-        }
+		@Override
+		protected int maxFlow() {
+			spfa();
+			int minCost = 0;
+			int maxFlow = 0;
+			List<Line> lines = new ArrayList<Line>();
+			while (pre[end] != -1) {
+				int minCf = Main.MAX_INT;
+				int u = pre[end], v = end;
+				LinkedList<Integer> path = new LinkedList<Integer>();
+				while (u != -1) {
+					if (v != end) {
+						path.addFirst(v);
+					} else {
+						path.addFirst(sinksId[u]);
+					}
+					if (minCf > left[u][v]) {
+						minCf = left[u][v];
+					}
+					v = u;
+					u = pre[v];
+				}
+				maxFlow += minCf;
+				if (minCf != Main.MAX_INT) {
+					lines.add(new Line(path, minCf));
+				}
+				u = pre[end];
+				v = end;
+				while (u != -1) {
+					minCost += minCf * price[u][v];
+					flow[u][v] += minCf;
+					flow[v][u] = -flow[u][v];
+					left[u][v] = capacity[u][v] - flow[u][v];
+					left[v][u] = capacity[v][u] - flow[v][u];
+					v = u;
+					u = pre[v];
+				}
+				spfa();
+			}
+			minCost += sources.length * perServerCost;
+			solution = new Solution(minCost, lines);
+			return maxFlow;
+		}
 
-        @Override
-        protected int addSuperSink() {
-            int total = 0;
-            for (int i = 0; i < sinks.length; i++) {
-                total += demands[i];
-                capacity[sinks[i]][vlen + 1] = demands[i];
-                capacity[vlen + 1][sinks[i]] = 0;
-                price[sinks[i]][vlen + 1] = 0;
-                price[vlen + 1][sinks[i]] = Main.MAX_INT;
-            }
-            return total;
-        }
-    }
+		@Override
+		protected void addSuperSource() {
+			for (int i = 0; i < sources.length; i++) {
+				capacity[vlen][sources[i]] = Main.MAX_INT;
+				capacity[sources[i]][vlen] = 0;
+				price[vlen][sources[i]] = 0;
+				price[sources[i]][vlen] = Main.MAX_INT;
+			}
+		}
 
-    public static class Line {
-        private final List<Integer> vertexs;
-        private final int volume;
+		@Override
+		protected int addSuperSink() {
+			int total = 0;
+			for (int i = 0; i < sinks.length; i++) {
+				total += demands[i];
+				capacity[sinks[i]][vlen + 1] = demands[i];
+				capacity[vlen + 1][sinks[i]] = 0;
+				price[sinks[i]][vlen + 1] = 0;
+				price[vlen + 1][sinks[i]] = Main.MAX_INT;
+			}
+			return total;
+		}
+	}
 
-        public Line(List<Integer> vertexs, int volume) {
-            this.vertexs = vertexs;
-            this.volume = volume;
-        }
+	public static class Line {
+		private final List<Integer> vertexs;
+		private final int volume;
 
-        public List<Integer> getVertexs() {
-            return vertexs;
-        }
+		public Line(List<Integer> vertexs, int volume) {
+			this.vertexs = vertexs;
+			this.volume = volume;
+		}
 
-        public int getVolume() {
-            return volume;
-        }
+		public List<Integer> getVertexs() {
+			return vertexs;
+		}
 
-        @Override
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < vertexs.size(); i++) {
-                builder.append(vertexs.get(i));
-                builder.append(" ");
-            }
-            builder.append(volume);
-            return builder.toString();
-        }
+		public int getVolume() {
+			return volume;
+		}
 
-    }
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			for (int i = 0; i < vertexs.size(); i++) {
+				builder.append(vertexs.get(i));
+				builder.append(" ");
+			}
+			builder.append(volume);
+			return builder.toString();
+		}
 
-    public static class Solution {
-        private final int cost;
-        private final List<Line> lines;
+	}
 
-        public Solution(int cost, List<Line> lines) {
-            this.cost = cost;
-            this.lines = lines;
-        }
+	public static class Solution {
+		private final int cost;
+		private final List<Line> lines;
 
-        public int getCost() {
-            return cost;
-        }
+		public Solution(int cost, List<Line> lines) {
+			this.cost = cost;
+			this.lines = lines;
+		}
 
-        public List<Line> getLines() {
-            return lines;
-        }
+		public int getCost() {
+			return cost;
+		}
 
-        @Override
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("minimum cost: " + cost + "\n");
-            for (int i = 0; i < lines.size(); i++) {
-                builder.append((i + 1) + ") ");
-                builder.append(lines.get(i));
-            }
-            return builder.toString();
-        }
+		public List<Line> getLines() {
+			return lines;
+		}
 
-    }
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("minimum cost: " + cost + "\n");
+			for (int i = 0; i < lines.size(); i++) {
+				builder.append((i + 1) + ") ");
+				builder.append(lines.get(i));
+			}
+			return builder.toString();
+		}
 
-    public static class Builder {
-        private int vlen;
-        private int[][] capacity;
-        private int[][] price;
-        private int[] sinks;
-        private int[] demands;
-        private int[] sinksId;
-        private int perServerCost;
+	}
 
-        private Builder(int vlen) {
-            this.vlen = vlen;
-        }
+	public static class Builder {
+		private int vlen;
+		private int[][] capacity;
+		private int[][] price;
+		private int[] sinks;
+		private int[] demands;
+		private int[] sinksId;
+		private int perServerCost;
 
-        public Builder setCapacity(int[][] capacity) {
-            this.capacity = capacity;
-            return this;
-        }
+		private Builder(int vlen) {
+			this.vlen = vlen;
+		}
 
-        public Builder setPrice(int[][] price) {
-            this.price = price;
-            return this;
-        }
+		public Builder setCapacity(int[][] capacity) {
+			this.capacity = capacity;
+			return this;
+		}
 
-        public Builder setConsumers(int[][] consumers, int num) {
-            this.sinks = new int[num];
-            this.demands = new int[num];
-            this.sinksId = new int[Main.MAX_NODES];
-            for (int i = 0; i < num; i++) {
-                sinks[i] = consumers[i][0];
-                sinksId[sinks[i]] = i;
-                demands[i] = consumers[i][1];
-            }
-            return this;
-        }
+		public Builder setPrice(int[][] price) {
+			this.price = price;
+			return this;
+		}
 
-        public Builder setServeCost(int cost) {
-            perServerCost = cost;
-            return this;
-        }
+		public Builder setConsumers(int[][] consumers, int num) {
+			this.sinks = new int[num];
+			this.demands = new int[num];
+			this.sinksId = new int[Main.MAX_NODES];
+			for (int i = 0; i < num; i++) {
+				sinks[i] = consumers[i][0];
+				sinksId[sinks[i]] = i;
+				demands[i] = consumers[i][1];
+			}
+			return this;
+		}
 
-        public Builder useAugmentPath() {
-            return this;
-        }
+		public Builder setServeCost(int cost) {
+			perServerCost = cost;
+			return this;
+		}
 
-        public NetFlow getNetFlow() {
-            return new NetFlow(this);
-        }
+		public Builder useAugmentPath() {
+			return this;
+		}
 
-    }
+		public NetFlow getNetFlow() {
+			return new NetFlow(this);
+		}
+
+	}
 }
