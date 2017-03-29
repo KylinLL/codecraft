@@ -9,11 +9,11 @@ import com.filetool.main.Main;
 
 public class Group {
 	private static final Random random = new Random();
-	public static int GROUP_SIZE = 80; // 群体规模，即群体中个体的数量，一般为20~100
+	public static int GROUP_SIZE = 100; // 群体规模，即群体中个体的数量，一般为20~100
 	public static double CROSS_RATE = 0.8; // 交叉概率，一般为0.4~0.9
-	public static double VARIATION_RATE = 0.1; // 变异概率，一般为0.001~0.1
+	public static double VARIATION_RATE = 0.2; // 变异概率，一般为0.001~0.1
 	public static double SELECT_RATE = 0.6; // 选择时保留的比例
-	public static int MAX_GENERATION = 100; // 最大代数，一般为100~500
+	public static int MAX_GENERATION = 128; // 最大代数，一般为100~500
 
 	private List<Unit> group = new ArrayList<>();
 
@@ -32,7 +32,7 @@ public class Group {
 		int num_abandon = GROUP_SIZE - num_select;
 
 		int nochange = 0;
-		for (int i = 0; i < MAX_GENERATION && nochange < MAX_GENERATION >> 1; i++, nochange++) {
+		for (int i = 0; i < MAX_GENERATION && nochange < MAX_GENERATION >> 2; i++, nochange++) {
 			System.out.println("generation " + i);
 			// 选择
 			Collections.sort(group);
@@ -83,7 +83,6 @@ public class Group {
 		}
 
 		while (!u2.isValid()) {
-//			System.out.println("aaaaaaa");
 			Unit.initServerLocation(u2, Main.NUM_NET);
 		}
 		u2.fillSolution();

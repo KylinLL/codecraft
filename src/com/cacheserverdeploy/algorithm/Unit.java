@@ -87,16 +87,11 @@ public class Unit implements Comparable<Unit>, Cloneable {
 	public static void initServerLocation(Unit unit, int range) {
 		int[] server_location = unit.getServerLocation();
 		for (int i = 0; i < unit.getSize(); i++) {
-			int tmp = random.nextInt(range);
-			// 如果随机出来的位置权重小于平均值，则再随机一次，仅一次
-//			if (Deploy.weight[tmp] < Deploy.avg_weight)
-//				tmp = random.nextInt(range);
+			int tmp = randomLocation(unit, i, range);
 			int j = 0;
 			while (j < i) {
 				if (tmp == server_location[j]) {
-					tmp = random.nextInt(range);
-//					if (Deploy.weight[tmp] < Deploy.avg_weight)
-//						tmp = random.nextInt(range);
+					tmp = randomLocation(unit, i, range);
 					j = 0;
 				} else {
 					j++;
@@ -104,6 +99,18 @@ public class Unit implements Comparable<Unit>, Cloneable {
 			}
 			server_location[i] = tmp;
 		}
+	}
+
+	private static int randomLocation(Unit unit, int index, int range) {
+		if (index < unit.getSize() >> 2) {
+			int i = random.nextInt(PreProcess.num_elite);
+			return PreProcess.elite[i];
+		}
+		int location = random.nextInt(range);
+		// 如果随机出来的位置权重小于平均值，则再随机一次，仅一次
+		if (PreProcess.weight[location] < PreProcess.avg_weight)
+			location = random.nextInt(range);
+		return location;
 	}
 
 }
