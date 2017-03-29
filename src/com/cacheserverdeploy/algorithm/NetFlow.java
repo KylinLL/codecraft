@@ -42,11 +42,11 @@ public class NetFlow {
     }
 
     public NetFlow newServers(int[] newSources) {
-        for (int i = 0; sources != null && i < sources.length; i++) {
-            capacity[vlen][sources[i]] = 0;
-            capacity[sources[i]][vlen] = 0;
-            price[vlen][sources[i]] = 0;
-            price[sources[i]][vlen] = 0;
+        for (int i = 0; i < vlen; i++) {
+            capacity[vlen][i] = 0;
+            capacity[i][vlen] = 0;
+            price[vlen][i] = 0;
+            price[i][vlen] = 0;
         }
         this.sources = newSources;
         this.strategy = new AugmentPathStrategy();
@@ -254,6 +254,34 @@ public class NetFlow {
                             inq[i] = true;
                         }
                     }
+                }
+            }
+        }
+
+        @SuppressWarnings("unused")
+        private void dijkstra() {
+            reset();
+            cost[start] = 0;
+            int cur = start;
+            while (cur != end) {
+                inq[cur] = true;
+                int minCost = Main.MAX_INT, pos = -1;
+                for (int i = 0; i < vertexLen; i++) {
+                    if (!inq[i] && left[cur][i] > 0 && cost[i] > cost[cur] + price[cur][i]) {
+                        cost[i] = cost[cur] + price[cur][i];
+                        pre[i] = cur;
+                    }
+                }
+                for (int i = 0; i < vertexLen; i++) {
+                    if (!inq[i] && minCost > cost[i]) {
+                        minCost = cost[i];
+                        pos = i;
+                    }
+                }
+                if (pos != -1) {
+                    cur = pos;
+                } else {
+                    break;
                 }
             }
         }
