@@ -73,8 +73,9 @@ public class Helper {
         int[][] consumers = { { 4, 12 }, { 5, 3 } };
         int[] sources = { 1, 3 };
         Builder builder = NetFlow.builder(pr.getVlen());
-        NetFlow flow = builder.setCapacity(pr.getCapacity()).setPrice(pr.getPrice()).setConsumers(consumers, consumers.length).setServeCost(1)
+        NetFlow flow = builder.setCapacity(pr.getCapacity()).setPrice(pr.getPrice()).setConsumers(consumers, consumers.length).setServeCost(2)
                 .getNetFlow();
+        long start = System.nanoTime();
         flow.newServers(sources);
         if (flow.meetDemands()) {
             System.out.println("find max flow!");
@@ -91,5 +92,6 @@ public class Helper {
         } else {
             System.out.println("cannot find max flow!");
         }
+        System.out.println(System.nanoTime() - start);
     }
 }

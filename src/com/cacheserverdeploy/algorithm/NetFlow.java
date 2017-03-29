@@ -1,9 +1,10 @@
 package com.cacheserverdeploy.algorithm;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.Set;
 
 import com.filetool.main.Main;
 
@@ -18,6 +19,7 @@ public class NetFlow {
 
     private Strategy strategy;
     private int[] sources;
+    private Set<Integer> givenServers = new HashSet<>();
 
     private NetFlow(Builder builder) {
         this.vlen = builder.vlen;
@@ -49,6 +51,10 @@ public class NetFlow {
             price[vlen][i] = 0;
             price[i][vlen] = 0;
         }
+        givenServers.clear();
+        for (int i = 0; i < newSources.length; i++) {
+            givenServers.add(newSources[i]);
+        }
         this.sources = newSources;
         this.strategy = new AugmentPathStrategy();
         return this;
@@ -79,128 +85,11 @@ public class NetFlow {
         public abstract Solution getSolution();
     }
 
-    // https://www.topcoder.com/community/data-science/data-science-tutorials/push-relabel-approach-to-the-maximum-flow-problem/
-    @SuppressWarnings("unused")
-    private class PushRelabelStrategy extends Strategy {
-        private final int[][] flow, left;
-        private final int[] excess, height;
-        private final int vertexLen, start, end;
-
-        public PushRelabelStrategy() {
-            super();
-            vertexLen = vlen + 2;
-            start = vlen;
-            end = vlen + 1;
-            flow = new int[vertexLen][vertexLen];
-            left = new int[vertexLen][vertexLen];
-            excess = new int[vertexLen];
-            height = new int[vertexLen];
-            for (int i = 0; i < vertexLen; i++) {
-                for (int j = 0; j < vertexLen; j++) {
-                    left[i][j] = capacity[i][j];
-                }
-            }
-        }
-
-        private void preflow() {
-            height[start] = vertexLen;
-            for (int i = 0; i < vertexLen; i++) {
-                if (capacity[start][i] > 0) {
-                    flow[start][i] = capacity[start][i];
-                    flow[i][start] = -capacity[start][i];
-                    excess[i] = capacity[start][i];
-                    excess[start] -= capacity[start][i];
-                    left[start][i] = capacity[start][i] - flow[start][i];
-                    left[i][start] = capacity[i][start] - flow[i][start];
-                }
-            }
-        }
-
-        private void push(int u, int v) {
-            int push = Math.min(excess[u], left[u][v]);
-            flow[u][v] += push;
-            flow[v][u] = -flow[u][v];
-            excess[u] -= push;
-            excess[v] += push;
-            left[u][v] = capacity[u][v] - flow[u][v];
-            left[v][u] = capacity[v][u] - flow[v][u];
-        }
-
-        @Override
-        protected int maxFlow() {
-            preflow();
-            Queue<Integer> queue = new LinkedList<Integer>();
-            boolean[] active = new boolean[vertexLen];
-            int u, minHeight;
-            for (int i = 0; i < vertexLen; i++) {
-                if (capacity[start][i] > 0 && i != end) {
-                    queue.offer(i);
-                    active[i] = true;
-                }
-            }
-            while (!queue.isEmpty()) {
-                u = queue.peek();
-                minHeight = Main.MAX_INT;
-                for (int i = 0; excess[u] > 0 && i < vertexLen; i++) {
-                    if (left[u][i] > 0) {
-                        if (height[u] > height[i]) {
-                            push(u, i);
-                            if (!active[i] && i != start && i != end) {
-                                active[i] = true;
-                                queue.offer(i);
-                            }
-                        } else {
-                            minHeight = Math.min(minHeight, height[i]);
-                        }
-                    }
-                }
-                if (excess[u] > 0) {
-                    height[u] = 1 + minHeight;
-                } else {
-                    active[u] = false;
-                    queue.poll();
-                }
-            }
-            return excess[end];
-        }
-
-        @Override
-        public Solution getSolution() {
-
-            return null;
-        }
-
-        @Override
-        protected void addSuperSource() {
-            for (int i = 0; i < sources.length; i++) {
-                capacity[vlen][sources[i]] = Main.MAX_INT;
-                capacity[sources[i]][vlen] = Main.MAX_INT;
-                price[vlen][sources[i]] = 0;
-                price[sources[i]][vlen] = Main.MAX_INT;
-            }
-        }
-
-        @Override
-        protected int addSuperSink() {
-            int total = 0;
-            for (int i = 0; i < sinks.length; i++) {
-                total += demands[i];
-                capacity[sinks[i]][vlen + 1] = demands[i];
-                capacity[vlen + 1][sinks[i]] = demands[i];
-                price[sinks[i]][vlen + 1] = 0;
-                price[vlen + 1][sinks[i]] = Main.MAX_INT;
-            }
-            return total;
-        }
-
-    }
-
     // http://blog.csdn.net/jarily/article/details/8613208
     private class AugmentPathStrategy extends Strategy {
         private final int[][] flow, left;
         private final int cost[], pre[];
-        private final boolean inq[];
-        private final Queue<Integer> queue;
+        private final boolean visited[];
         private final int vertexLen, start, end;
         private Solution solution;
 
@@ -211,10 +100,9 @@ public class NetFlow {
             end = vlen + 1;
             cost = new int[vertexLen];
             pre = new int[vertexLen];
-            inq = new boolean[vertexLen];
+            visited = new boolean[vertexLen];
             flow = new int[vertexLen][vertexLen];
             left = new int[vertexLen][vertexLen];
-            queue = new LinkedList<Integer>();
             for (int i = 0; i < vertexLen; i++) {
                 for (int j = 0; j < vertexLen; j++) {
                     left[i][j] = capacity[i][j];
@@ -223,58 +111,28 @@ public class NetFlow {
         }
 
         private void reset() {
-            queue.clear();
             for (int i = 0; i < vertexLen; i++) {
                 cost[i] = Main.MAX_INT;
                 pre[i] = -1;
-                inq[i] = false;
+                visited[i] = false;
             }
         }
 
-        private void spfa() {
-            reset();
-            cost[start] = 0;
-            queue.offer(start);
-            inq[start] = true;
-            int cur;
-            while (!queue.isEmpty()) {
-                cur = queue.poll();
-                inq[cur] = false;
-                for (int i = 0; i < vertexLen; i++) {
-                    if (left[cur][i] == 0) {
-                        continue;
-                    }
-                    if (price[cur][i] == Main.MAX_INT) {
-                        price[cur][i] = -price[i][cur];
-                    }
-                    if (cost[i] > cost[cur] + price[cur][i]) {
-                        cost[i] = cost[cur] + price[cur][i];
-                        pre[i] = cur;
-                        if (!inq[i]) {
-                            queue.offer(i);
-                            inq[i] = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        @SuppressWarnings("unused")
         private void dijkstra() {
             reset();
             cost[start] = 0;
             int cur = start;
             while (cur != end) {
-                inq[cur] = true;
-                int minCost = Main.MAX_INT, pos = -1;
+                visited[cur] = true;
                 for (int i = 0; i < vertexLen; i++) {
-                    if (!inq[i] && left[cur][i] > 0 && cost[i] > cost[cur] + price[cur][i]) {
+                    if (!visited[i] && left[cur][i] > 0 && cost[i] > cost[cur] + price[cur][i]) {
                         cost[i] = cost[cur] + price[cur][i];
                         pre[i] = cur;
                     }
                 }
+                int minCost = Main.MAX_INT, pos = -1;
                 for (int i = 0; i < vertexLen; i++) {
-                    if (!inq[i] && minCost > cost[i]) {
+                    if (!visited[i] && minCost > cost[i]) {
                         minCost = cost[i];
                         pos = i;
                     }
@@ -297,7 +155,7 @@ public class NetFlow {
 
         @Override
         protected int maxFlow() {
-            spfa();
+            dijkstra();
             int minCost = 0;
             int maxFlow = 0;
             List<Line> lines = new ArrayList<Line>();
@@ -320,34 +178,21 @@ public class NetFlow {
                 if (minCf != Main.MAX_INT) {
                     maxFlow += minCf;
                     lines.add(new Line(path, minCf));
-
-                    int server = path.peek();
-                    boolean find = false;
-                    for (int i = 0; i < sources.length; i++) {
-                        if (sources[i] == server) {
-                            find = true;
-                            break;
-                        }
-                    }
-                    if (!find) {
-                        System.out.println("\n\n\n\n\n\n\nNONONONONO\n\n\n\n\n\n\n");
-                    }
+                    givenServers.remove(path.peek());
                 }
                 u = pre[end];
                 v = end;
                 while (u != -1) {
                     minCost += minCf * price[u][v];
                     flow[u][v] += minCf;
-                    flow[v][u] = -flow[u][v];
                     left[u][v] = capacity[u][v] - flow[u][v];
-                    left[v][u] = capacity[v][u] - flow[v][u];
                     v = u;
                     u = pre[v];
                 }
-                spfa();
+                dijkstra();
             }
             minCost += sources.length * perServerCost;
-            solution = new Solution(minCost, lines);
+            solution = new Solution(minCost, lines,givenServers);
             return maxFlow;
         }
 
@@ -408,10 +253,12 @@ public class NetFlow {
     public static class Solution {
         private final int cost;
         private final List<Line> lines;
+        private final Set<Integer> remain;
 
-        public Solution(int cost, List<Line> lines) {
+        public Solution(int cost, List<Line> lines,Set<Integer> ra) {
             this.cost = cost;
             this.lines = lines;
+            this.remain = ra;
         }
 
         public int getCost() {
@@ -420,6 +267,10 @@ public class NetFlow {
 
         public List<Line> getLines() {
             return lines;
+        }
+        
+        public Set<Integer> getRemain() {
+            return remain;
         }
 
         @Override
