@@ -350,14 +350,11 @@ public class NetFlow {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append(volume + ": ");
             for (int i = 0; i < vertexs.size(); i++) {
                 builder.append(vertexs.get(i));
-                if (i != vertexs.size() - 1) {
-                    builder.append("->");
-                }
+                builder.append(" ");
             }
-            builder.append("\n");
+            builder.append(volume);
             return builder.toString();
         }
 
