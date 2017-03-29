@@ -11,7 +11,7 @@ import com.cacheserverdeploy.algorithm.NetFlow.Line;
 import com.filetool.main.Main;
 
 public class Deploy {
-    public static final long MAX_TIME = 10 * 1000;
+    public static final long MAX_TIME = 80 * 1000;
     public static NetFlow flow;
 
     /**

@@ -14,7 +14,7 @@ public class Unit implements Comparable<Unit>, Cloneable {
 	private Solution solution;
 
 	public Unit() {
-		int size = Main.NUM_CONSUMER - 2;
+		int size = Main.NUM_CONSUMER - 1;
 		serverLocation = new int[size];
 	}
 
