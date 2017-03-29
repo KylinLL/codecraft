@@ -34,6 +34,7 @@ public class NetFlow {
     }
 
     public Solution getSolution() {
+        System.out.println("COST: " + (null == strategy.getSolution() ? "NULL" : "" + strategy.getSolution().getCost()));
         return strategy.getSolution();
     }
 
@@ -317,6 +318,9 @@ public class NetFlow {
                     u = pre[v];
                 }
                 if (minCf != Main.MAX_INT) {
+                    maxFlow += minCf;
+                    lines.add(new Line(path, minCf));
+
                     int server = path.peek();
                     boolean find = false;
                     for (int i = 0; i < sources.length; i++) {
@@ -328,10 +332,6 @@ public class NetFlow {
                     if (!find) {
                         System.out.println("\n\n\n\n\n\n\nNONONONONO\n\n\n\n\n\n\n");
                     }
-                }
-                maxFlow += minCf;
-                if (minCf != Main.MAX_INT) {
-                    lines.add(new Line(path, minCf));
                 }
                 u = pre[end];
                 v = end;
