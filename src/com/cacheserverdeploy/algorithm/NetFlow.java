@@ -1,11 +1,11 @@
 package com.cacheserverdeploy.algorithm;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 
 import com.filetool.main.Main;
@@ -93,7 +93,7 @@ public class NetFlow {
         private final int[][] flow, left;
         private final int cost[], pre[];
         private final boolean visited[];
-        private final Queue<Integer> queue;
+        private final PriorityQueue<Integer> queue;
         private final int vertexLen, start, end;
         private Solution solution;
 
@@ -105,7 +105,12 @@ public class NetFlow {
             cost = new int[vertexLen];
             pre = new int[vertexLen];
             visited = new boolean[vertexLen];
-            queue = new PriorityQueue<>();
+            queue = new PriorityQueue<Integer>(vertexLen, new Comparator<Integer>() {
+                @Override
+                public int compare(Integer p1, Integer p2) {
+                    return cost[p1] - cost[p2];
+                }
+            });
             flow = new int[vertexLen][vertexLen];
             left = new int[vertexLen][vertexLen];
             for (int i = 0; i < vertexLen; i++) {
@@ -118,13 +123,19 @@ public class NetFlow {
         private void reset() {
             queue.clear();
             for (int i = 0; i < vertexLen; i++) {
-                cost[i] = Main.MAX_INT;
+                if (i != start) {
+                    cost[i] = Main.MAX_INT;
+                } else {
+                    cost[i] = 0;
+                }
+                queue.offer(i);
                 pre[i] = -1;
                 visited[i] = false;
             }
         }
 
         @SuppressWarnings("unused")
+        @Deprecated
         private void spfa() {
             reset();
             cost[start] = 0;
@@ -155,27 +166,20 @@ public class NetFlow {
 
         private void dijkstra() {
             reset();
-            cost[start] = 0;
-            int cur = start;
-            while (cur != end) {
+            int cur = -1;
+            while (!queue.isEmpty()) {
+                cur = queue.poll();
                 visited[cur] = true;
+                if (cur == end) {
+                    break;
+                }
                 for (int i = 0; i < vertexLen; i++) {
                     if (!visited[i] && left[cur][i] > 0 && cost[i] > cost[cur] + price[cur][i]) {
+                        queue.remove(i);
                         cost[i] = cost[cur] + price[cur][i];
+                        queue.offer(i);
                         pre[i] = cur;
                     }
-                }
-                int minCost = Main.MAX_INT, pos = -1;
-                for (int i = 0; i < vertexLen; i++) {
-                    if (!visited[i] && minCost > cost[i]) {
-                        minCost = cost[i];
-                        pos = i;
-                    }
-                }
-                if (pos != -1) {
-                    cur = pos;
-                } else {
-                    break;
                 }
             }
         }
@@ -253,9 +257,9 @@ public class NetFlow {
             }
             return total;
         }
-        
+
     }
-    
+
     public static class Line {
         private final List<Integer> vertexs;
         private final int volume;
@@ -290,6 +294,7 @@ public class NetFlow {
         private final int cost;
         private final List<Line> lines;
         private final Set<Integer> remain;
+//        private final Map<Integer,Integer> workLoad;
 
         public Solution(int cost, List<Line> lines, Set<Integer> ra) {
             this.cost = cost;
