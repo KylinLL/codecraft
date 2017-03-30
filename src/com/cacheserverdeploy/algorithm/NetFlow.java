@@ -2,11 +2,11 @@ package com.cacheserverdeploy.algorithm;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 
 import com.filetool.main.Main;
 
@@ -21,7 +21,6 @@ public class NetFlow {
 
     private Strategy strategy;
     private int[] sources;
-    private Set<Integer> givenServers = new HashSet<Integer>();
 
     private NetFlow(Builder builder) {
         this.vlen = builder.vlen;
@@ -38,8 +37,6 @@ public class NetFlow {
     }
 
     public Solution getSolution() {
-        // System.out.println("COST: " + (null == strategy.getSolution() ?
-        // "NULL" : "" + strategy.getSolution().getCost()));
         return strategy.getSolution();
     }
 
@@ -53,10 +50,6 @@ public class NetFlow {
             capacity[i][vlen] = 0;
             price[vlen][i] = 0;
             price[i][vlen] = 0;
-        }
-        givenServers.clear();
-        for (int i = 0; i < newSources.length; i++) {
-            givenServers.add(newSources[i]);
         }
         this.sources = newSources;
         this.strategy = new AugmentPathStrategy();
@@ -198,6 +191,7 @@ public class NetFlow {
             int minCost = 0;
             int maxFlow = 0;
             List<Line> lines = new ArrayList<Line>();
+            Map<Integer, Integer> map = new HashMap<>();
             while (pre[end] != -1) {
                 int minCf = Main.MAX_INT;
                 int u = pre[end], v = end;
@@ -217,7 +211,11 @@ public class NetFlow {
                 if (minCf != Main.MAX_INT) {
                     maxFlow += minCf;
                     lines.add(new Line(path, minCf));
-                    givenServers.remove(path.peek());
+                    Integer server = path.peek();
+                    if (!map.containsKey(server)) {
+                        map.put(server, 0);
+                    }
+                    map.put(server, map.get(server)+minCf);
                 }
                 u = pre[end];
                 v = end;
@@ -231,7 +229,7 @@ public class NetFlow {
                 dijkstra();
             }
             minCost += sources.length * perServerCost;
-            solution = new Solution(minCost, lines, givenServers);
+            solution = new Solution(minCost, lines, map);
             return maxFlow;
         }
 
@@ -293,13 +291,12 @@ public class NetFlow {
     public static class Solution {
         private final int cost;
         private final List<Line> lines;
-        private final Set<Integer> remain;
-//        private final Map<Integer,Integer> workLoad;
+        private final Map<Integer, Integer> workLoad;
 
-        public Solution(int cost, List<Line> lines, Set<Integer> ra) {
+        public Solution(int cost, List<Line> lines, Map<Integer, Integer> work) {
             this.cost = cost;
             this.lines = lines;
-            this.remain = ra;
+            this.workLoad = work;
         }
 
         public int getCost() {
@@ -310,8 +307,8 @@ public class NetFlow {
             return lines;
         }
 
-        public Set<Integer> getRemain() {
-            return remain;
+        public Map<Integer, Integer> getWorkLoad() {
+            return workLoad;
         }
 
         @Override
