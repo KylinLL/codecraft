@@ -1,5 +1,7 @@
 package com.cacheserverdeploy.algorithm;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -48,17 +50,25 @@ public class Unit implements Comparable<Unit>, Cloneable {
 
 	public void setSolution(Solution solution) {
 		this.solution = solution;
-
-		if (solution != null && solution.getRemain() != null && !solution.getRemain().isEmpty()) {
-			Set<Integer> remain = solution.getRemain();
-			int size = remain.size();
-			int[] newSource = new int[serverLocation.length - size];
+		if (solution != null) {
+			Map<Integer, Integer> workLoad = solution.getWorkLoad();
+			System.out.println(workLoad.size() + " " + serverLocation.length);
+			System.out.println(workLoad);
+			int size = workLoad.size();
+			int[] newSource = new int[size];
 			int i = 0;
+			Set<Integer> set = new HashSet<>();
+			for (int loc : serverLocation) {
+				set.add(loc);
+			}
+			System.out.println(set.size());
 			for (int location : serverLocation) {
-				if (!remain.contains(location)) {
+				System.out.print(location + " ");
+				if (workLoad.containsKey(location)) {
 					newSource[i++] = location;
 				}
 			}
+			System.out.println();
 			serverLocation = newSource;
 		}
 	}
@@ -88,7 +98,7 @@ public class Unit implements Comparable<Unit>, Cloneable {
 	}
 
 	public static Unit newRandomUnit(int range) {
-//		System.out.println("初始化Unit...");
+		System.out.println("初始化Unit...");
 		Unit ret = new Unit();
 		initServerLocation(ret, range);
 		while (!ret.isValid()) {
