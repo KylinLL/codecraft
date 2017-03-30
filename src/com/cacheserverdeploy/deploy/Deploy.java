@@ -12,6 +12,7 @@ import com.filetool.main.Main;
 
 public class Deploy {
     public static final long MAX_TIME = 80 * 1000;
+    public static final long LAO_ZI_BU_CI_HOU = 30000;
     public static NetFlow flow;
 
     /**
@@ -25,7 +26,7 @@ public class Deploy {
     public static String[] deployServer(String[] graphContent) {
 
         /** do your work here **/
-        final Thread mainThread = Thread.currentThread();
+        final Thread main = Thread.currentThread();
 
         final Thread timer = new Thread(new Runnable() {
             @Override
@@ -35,7 +36,7 @@ public class Deploy {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    mainThread.interrupt();
+                    main.interrupt();
                 }
             }
         });
