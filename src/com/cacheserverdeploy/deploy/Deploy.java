@@ -27,11 +27,10 @@ public class Deploy {
         /** do your work here **/
         final Thread mainThread = Thread.currentThread();
 
-        new Thread(new Runnable() {
+        final Thread timer = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Thread.currentThread().setDaemon(true);
                     Thread.sleep(MAX_TIME);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -39,7 +38,9 @@ public class Deploy {
                     mainThread.interrupt();
                 }
             }
-        }).start();
+        });
+        timer.setDaemon(true);
+        timer.start();
 
         Builder builder = NetFlow.builder(Main.NUM_NET);
         flow = builder.setCapacity(Main.MATRIX_NETWORK).setPrice(Main.MATRIX_COST).setConsumers(Main.CONSUMER, Main.NUM_CONSUMER)
