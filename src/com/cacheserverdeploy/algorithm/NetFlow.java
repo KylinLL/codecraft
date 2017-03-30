@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 
 import com.filetool.main.Main;
@@ -36,7 +38,8 @@ public class NetFlow {
     }
 
     public Solution getSolution() {
-//        System.out.println("COST: " + (null == strategy.getSolution() ? "NULL" : "" + strategy.getSolution().getCost()));
+        // System.out.println("COST: " + (null == strategy.getSolution() ?
+        // "NULL" : "" + strategy.getSolution().getCost()));
         return strategy.getSolution();
     }
 
@@ -90,6 +93,7 @@ public class NetFlow {
         private final int[][] flow, left;
         private final int cost[], pre[];
         private final boolean visited[];
+        private final Queue<Integer> queue;
         private final int vertexLen, start, end;
         private Solution solution;
 
@@ -101,6 +105,7 @@ public class NetFlow {
             cost = new int[vertexLen];
             pre = new int[vertexLen];
             visited = new boolean[vertexLen];
+            queue = new PriorityQueue<>();
             flow = new int[vertexLen][vertexLen];
             left = new int[vertexLen][vertexLen];
             for (int i = 0; i < vertexLen; i++) {
@@ -111,10 +116,40 @@ public class NetFlow {
         }
 
         private void reset() {
+            queue.clear();
             for (int i = 0; i < vertexLen; i++) {
                 cost[i] = Main.MAX_INT;
                 pre[i] = -1;
                 visited[i] = false;
+            }
+        }
+
+        @SuppressWarnings("unused")
+        private void spfa() {
+            reset();
+            cost[start] = 0;
+            queue.offer(start);
+            visited[start] = true;
+            int cur;
+            while (!queue.isEmpty()) {
+                cur = queue.poll();
+                visited[cur] = false;
+                for (int i = 0; i < vertexLen; i++) {
+                    if (left[cur][i] == 0) {
+                        continue;
+                    }
+                    if (price[cur][i] == Main.MAX_INT) {
+                        price[cur][i] = -price[i][cur];
+                    }
+                    if (cost[i] > cost[cur] + price[cur][i]) {
+                        cost[i] = cost[cur] + price[cur][i];
+                        pre[i] = cur;
+                        if (!visited[i]) {
+                            queue.offer(i);
+                            visited[i] = true;
+                        }
+                    }
+                }
             }
         }
 
@@ -192,7 +227,7 @@ public class NetFlow {
                 dijkstra();
             }
             minCost += sources.length * perServerCost;
-            solution = new Solution(minCost, lines,givenServers);
+            solution = new Solution(minCost, lines, givenServers);
             return maxFlow;
         }
 
@@ -218,8 +253,9 @@ public class NetFlow {
             }
             return total;
         }
+        
     }
-
+    
     public static class Line {
         private final List<Integer> vertexs;
         private final int volume;
@@ -255,7 +291,7 @@ public class NetFlow {
         private final List<Line> lines;
         private final Set<Integer> remain;
 
-        public Solution(int cost, List<Line> lines,Set<Integer> ra) {
+        public Solution(int cost, List<Line> lines, Set<Integer> ra) {
             this.cost = cost;
             this.lines = lines;
             this.remain = ra;
@@ -268,7 +304,7 @@ public class NetFlow {
         public List<Line> getLines() {
             return lines;
         }
-        
+
         public Set<Integer> getRemain() {
             return remain;
         }
