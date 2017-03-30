@@ -14,7 +14,8 @@ public class Group {
 	public static double VARIATION_RATE = 0.2; // 变异概率，一般为0.001~0.1
 	public static double SELECT_RATE = 0.6; // 选择时保留的比例
 	public static int MAX_GENERATION = 256; // 最大代数，一般为100~500
-	public static volatile boolean stop = false;
+
+	public static boolean stop = false;
 
 	private List<Unit> group = new ArrayList<Unit>();
 
