@@ -25,27 +25,29 @@ public class Deploy {
     public static String[] deployServer(String[] graphContent) {
 
         /** do your work here **/
-        
+        final Thread mainThread = Thread.currentThread();
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
+                    Thread.currentThread().setDaemon(true);
                     Thread.sleep(MAX_TIME);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    Group.stop = true;
+                    mainThread.interrupt();
                 }
             }
         }).start();
-        
+
         Builder builder = NetFlow.builder(Main.NUM_NET);
         flow = builder.setCapacity(Main.MATRIX_NETWORK).setPrice(Main.MATRIX_COST).setConsumers(Main.CONSUMER, Main.NUM_CONSUMER)
                 .setServeCost(Main.PRICE_PER_SERVER).getNetFlow();
         PreProcess.preProcessing();
         Group group = new Group();
         group.evolution();
-        
+
         List<Line> lines = Main.BEST_UNIT.getSolution().getLines();
         String[] content = new String[lines.size() + 2];
         content[0] = String.valueOf(lines.size());
