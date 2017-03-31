@@ -14,6 +14,7 @@ public class Group {
 	public static double VARIATION_RATE = 0.2; // 变异概率，一般为0.001~0.1
 	public static double SELECT_RATE = 0.6; // 选择时保留的比例
 	public static int MAX_GENERATION = 256; // 最大代数，一般为100~500
+	public static int MAX_NO_CHANGE_GEN = MAX_GENERATION >> 3; // 连续多少代没有收敛，则跳出
 
 	private List<Unit> group = new ArrayList<Unit>();
 
@@ -29,39 +30,38 @@ public class Group {
 		int num_cross2 = (int) (GROUP_SIZE * (1 - CROSS_RATE / 2));
 		int num_select = (int) (GROUP_SIZE * SELECT_RATE);
 		int num_abandon = GROUP_SIZE - num_select;
-		try {
-			int nochange = 0;
-			int nochangegen = MAX_GENERATION >> 2;
-			for (int i = 0; i < MAX_GENERATION && nochange < nochangegen
-					&& !Thread.currentThread().isInterrupted(); i++, nochange++) {
-//				System.out.println("generation " + i);
-				// 选择
-				Collections.sort(group);
-				if (Main.BEST_UNIT.compareTo(group.get(0)) > 0) {
-					Main.BEST_UNIT = group.get(0);
-					nochange = 0;
-				}
-//				System.out.println("Now best:" + group.get(0).getCost());
-				// System.out.println(group.get(0).getSolution());
-				for (int j = 0; j < num_abandon; j++) {
-					group.set(j + num_select, group.get(j).clone());
-				}
-				// 交叉
-				for (int j = 0; j < num_cross; j++) {
-					cross(group.get(j + num_cross1), group.get(j + num_cross2));
-				}
-				// 变异
-				variation(i);
-//				System.out.println("Min Cost: " + Main.BEST_UNIT.getCost());
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			System.out.println("TIME OVER");
-		} finally {
+
+		int noChangeCount = 0;
+		Unit lastBest = group.get(0); // 上一代最佳个体，初始化为group中的第一个unit
+
+		for (int i = 0; i < MAX_GENERATION && noChangeCount < MAX_NO_CHANGE_GEN
+				&& !Thread.currentThread().isInterrupted(); i++, noChangeCount++) {
+			System.out.println("generation " + i);
+			// 选择
 			Collections.sort(group);
+			if (lastBest.compareTo(group.get(0)) > 0) {
+				noChangeCount = 0;
+			}
+			lastBest = group.get(0);
 			if (Main.BEST_UNIT.compareTo(group.get(0)) > 0) {
 				Main.BEST_UNIT = group.get(0);
 			}
+			System.out.println("Now Cost:" + group.get(0).getCost());
+			for (int j = 0; j < num_abandon; j++) {
+				group.set(j + num_select, group.get(j).clone());
+			}
+			// 交叉
+			for (int j = 0; j < num_cross; j++) {
+				cross(group.get(j + num_cross1), group.get(j + num_cross2));
+			}
+			// 变异
+			variation(i);
+			System.out.println("Best Cost: " + Main.BEST_UNIT.getCost());
+		}
+
+		Collections.sort(group);
+		if (Main.BEST_UNIT.compareTo(group.get(0)) > 0) {
+			Main.BEST_UNIT = group.get(0);
 		}
 	}
 

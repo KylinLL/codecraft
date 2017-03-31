@@ -46,12 +46,12 @@ public class Main {
 		LogUtil.printLog("Begin");
 
 		// 读取输入文件
-		String[] graphContent = FileUtil.read(graphFilePath, null);
+		// String[] graphContent = FileUtil.read(graphFilePath, null);
 		read(graphFilePath);
 		initSolution();
 
 		// 功能实现入口
-		String[] resultContents = Deploy.deployServer(graphContent);
+		String[] resultContents = Deploy.deployServer();
 
 		// 写入输出文件
 		if (hasResults(resultContents)) {
