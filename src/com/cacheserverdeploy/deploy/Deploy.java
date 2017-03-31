@@ -1,6 +1,5 @@
 package com.cacheserverdeploy.deploy;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.cacheserverdeploy.algorithm.Group;
@@ -58,9 +57,9 @@ public class Deploy {
         for (int i = 0; i < lines.size(); i++) {
             content[2 + i] = lines.get(i).toString();
         }
-        System.out.println("Server count init: " + (Main.NUM_CONSUMER - 1));
-        System.out.println("Server count: " + Main.BEST_UNIT.getSize());
-        System.out.println(Arrays.toString(Main.BEST_UNIT.getServerLocation()));
+//        System.out.println("Server count init: " + (Main.NUM_CONSUMER - 1));
+//        System.out.println("Server count: " + Main.BEST_UNIT.getSize());
+//        System.out.println(Arrays.toString(Main.BEST_UNIT.getServerLocation()));
         return content;
     }
 

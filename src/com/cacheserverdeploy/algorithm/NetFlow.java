@@ -156,7 +156,7 @@ public class NetFlow {
             int minCost = 0;
             int maxFlow = 0;
             List<Line> lines = new ArrayList<Line>();
-            Map<Integer, Integer> map = new HashMap<>();
+            Map<Integer, Integer> map = new HashMap<Integer, Integer>();
             while (pre[superSink] != -1) {
                 int minCf = Main.MAX_INT;
                 int u = pre[superSink], v = superSink;
