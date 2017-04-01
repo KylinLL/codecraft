@@ -71,7 +71,7 @@ public class NetFlow {
             price[i][superSource] = 0;
         }
         this.sources = newSources;
-        sourcesId = new int[sources.length];
+        sourcesId = new int[vlen];
         for (int i = 0; i < sources.length; i++) {
             capacity[superSource][sources[i]] = Main.MAX_INT;
             capacity[sources[i]][superSource] = 0;
