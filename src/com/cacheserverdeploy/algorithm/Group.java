@@ -3,13 +3,15 @@ package com.cacheserverdeploy.algorithm;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import com.cacheserverdeploy.algorithm.NetFlow.Solution;
 import com.filetool.main.Main;
 
 public class Group {
 	private static final Random random = new Random();
-	public static int GROUP_SIZE = 100; // 群体规模，即群体中个体的数量，一般为20~100
+	public static int GROUP_SIZE = 60; // 群体规模，即群体中个体的数量，一般为20~100
 	public static double CROSS_RATE = 0.8; // 交叉概率，一般为0.4~0.9
 	public static double VARIATION_RATE = 0.2; // 变异概率，一般为0.001~0.1
 	public static double SELECT_RATE = 0.6; // 选择时保留的比例
@@ -110,19 +112,54 @@ public class Group {
 		// 一定机率减少服务器节点
 		int flag = random.nextInt(GROUP_SIZE);
 		// 在进化后期增大变异概率
-		if (flag <= ((gen > MAX_GENERATION / 2) ? (5 * GROUP_SIZE * VARIATION_RATE) : (GROUP_SIZE * VARIATION_RATE))) {
+		if (flag <= ((gen > MAX_GENERATION / 2) ? (3 * GROUP_SIZE * VARIATION_RATE) : (GROUP_SIZE * VARIATION_RATE))) {
+			int choice = random.nextInt(10000); // 选择哪种变异方式
 			int i = random.nextInt(GROUP_SIZE); // 确定发生变异的个体
 			Unit u = group.get(i);
-			if (Main.NUM_CONSUMER - u.getSize() > 2 && flag % 2 == 0) {
-				plusServer(u);
-			} else {
-				int j = random.nextInt(u.getSize()); // 确定发生变异的位置
-				if (flag % 2 == 0)
-					minusServer(u, j);
-				else
-					changeServer(u, j);
+			int j = random.nextInt(u.getSize()); // 确定发生变异的位置
+			int k = getLeastLoad(u);
+			switch (choice % 5) {
+			case 0:
+				if (k >= u.getSize())
+					k = j;
+				minusServer(u, k);
+				break;
+			case 1:
+				minusServer(u, j);
+				break;
+			case 2:
+				if (k >= u.getSize())
+					k = j;
+				changeServer(u, k);
+				break;
+			case 3:
+				changeServer(u, j);
+				break;
+			case 4:
+				if (Main.NUM_CONSUMER - u.getSize() > 2) {
+					plusServer(u);
+				}
+				break;
+			default:
+				break;
 			}
 		}
+	}
+
+	private int getLeastLoad(Unit u) {
+		Solution solution = u.getSolution();
+		int index = Main.NUM_NET;
+		if (solution != null) {
+			Map<Integer, Integer> workLoad = solution.getWorkLoad();
+			int min = Integer.MAX_VALUE;
+			for (int i : workLoad.keySet()) {
+				if (min > workLoad.get(i)) {
+					min = workLoad.get(i);
+					index = i;
+				}
+			}
+		}
+		return index;
 	}
 
 	private void plusServer(Unit u) {
@@ -158,7 +195,9 @@ public class Group {
 	}
 
 	private void changeServer(Unit u, int index) {
-		int oldServer = u.getServerLocation()[index];
+		int oldServer = 0;
+		oldServer = u.getServerLocation()[index];
+
 		int tmp = random.nextInt(Main.NUM_NET);
 		while (!checkRepeat(tmp, u.getServerLocation(), 0, u.getSize())) {
 			tmp = random.nextInt(Main.NUM_NET);

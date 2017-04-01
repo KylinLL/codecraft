@@ -18,6 +18,10 @@ public class Unit implements Comparable<Unit>, Cloneable {
 		serverLocation = new int[size];
 	}
 
+	public Unit(int size) {
+		serverLocation = new int[size];
+	}
+
 	public int getSize() {
 		return serverLocation.length;
 	}
@@ -52,11 +56,9 @@ public class Unit implements Comparable<Unit>, Cloneable {
 			Map<Integer, Integer> workLoad = solution.getWorkLoad();
 			int size = workLoad.size();
 			int[] newSource = new int[size];
-			int i = 0;
-			for (int location : serverLocation) {
-				if (workLoad.containsKey(location)) {
-					newSource[i++] = location;
-				}
+			int index = 0;
+			for (int i : workLoad.keySet()) {
+				newSource[index++] = serverLocation[i];
 			}
 			serverLocation = newSource;
 		}
@@ -87,7 +89,7 @@ public class Unit implements Comparable<Unit>, Cloneable {
 	}
 
 	public static Unit newRandomUnit(int range) {
-//		System.out.println("初始化Unit...");
+		// System.out.println("初始化Unit...");
 		Unit ret = new Unit();
 		initServerLocation(ret, range);
 		while (!ret.isValid()) {

@@ -2,17 +2,19 @@ package com.cacheserverdeploy.deploy;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import com.cacheserverdeploy.algorithm.Group;
 import com.cacheserverdeploy.algorithm.NetFlow;
 import com.cacheserverdeploy.algorithm.PreProcess;
+import com.cacheserverdeploy.algorithm.Unit;
 import com.cacheserverdeploy.algorithm.NetFlow.Builder;
 import com.cacheserverdeploy.algorithm.NetFlow.Line;
 import com.filetool.main.Main;
 
 public class Deploy {
 	public static final long MAX_TIME = 80 * 1000;
-	public static final long LAO_ZI_BU_CI_HOU = 100000;
+	public static final long LAO_ZI_BU_CI_HOU = 100;
 	public static NetFlow flow;
 
 	/**
@@ -26,33 +28,34 @@ public class Deploy {
 	public static String[] deployServer() {
 
 		/** do your work here **/
+		final Thread main = Thread.currentThread();
 
-		if (Main.BEST_UNIT.getCost() < LAO_ZI_BU_CI_HOU) {
-
-			final Thread main = Thread.currentThread();
-
-			final Thread timer = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(MAX_TIME);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} finally {
-						main.interrupt();
-					}
+		final Thread timer = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(MAX_TIME);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} finally {
+					main.interrupt();
 				}
-			});
-			timer.setDaemon(true);
-			timer.start();
+			}
+		});
+		timer.setDaemon(true);
+		timer.start();
 
-			Builder builder = NetFlow.builder(Main.NUM_NET);
-			flow = builder.setCapacity(Main.MATRIX_NETWORK).setPrice(Main.MATRIX_COST)
-					.setConsumers(Main.CONSUMER, Main.NUM_CONSUMER).setServeCost(Main.PRICE_PER_SERVER).getNetFlow();
+		Builder builder = NetFlow.builder(Main.NUM_NET);
+		flow = builder.setCapacity(Main.MATRIX_NETWORK).setPrice(Main.MATRIX_COST)
+				.setConsumers(Main.CONSUMER, Main.NUM_CONSUMER).setServeCost(Main.PRICE_PER_SERVER).getNetFlow();
 
-			PreProcess.preProcessing();
+		PreProcess.preProcessing();
+
+		if (Main.NUM_CONSUMER < LAO_ZI_BU_CI_HOU) {
 			Group group = new Group();
 			group.evolution();
+		} else {
+			twoLevelRandom();
 		}
 
 		List<Line> lines = Main.BEST_UNIT.getSolution().getLines();
@@ -67,6 +70,24 @@ public class Deploy {
 		System.out.println("Server count: " + Main.BEST_UNIT.getSize());
 		System.out.println(Arrays.toString(Main.BEST_UNIT.getServerLocation()));
 		return content;
+	}
+
+	private static void twoLevelRandom() {
+		Random random = new Random();
+		int half = Main.NUM_CONSUMER >> 1;
+		while (!Thread.currentThread().isInterrupted()) {
+
+			int serverSize = random.nextInt(half) + half;
+			Unit u = new Unit(serverSize);
+			Unit.initServerLocation(u, Main.NUM_NET);
+			if (u.isValid()) {
+				u.fillSolution();
+				if (Main.BEST_UNIT.compareTo(u) > 0) {
+					Main.BEST_UNIT = u;
+				}
+				System.out.println("Best Cost: " + Main.BEST_UNIT.getCost());
+			}
+		}
 	}
 
 }
