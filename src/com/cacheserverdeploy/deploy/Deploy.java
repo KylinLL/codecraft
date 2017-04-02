@@ -14,7 +14,7 @@ import com.filetool.main.Main;
 
 public class Deploy {
 	public static final long MAX_TIME = 80 * 1000;
-	public static final long LAO_ZI_BU_CI_HOU = 200;
+	public static final long LAO_ZI_BU_CI_HOU = 400;
 	public static NetFlow flow;
 
 	/**
@@ -52,12 +52,10 @@ public class Deploy {
 
 		PreProcess.preProcessing();
 
-		if (Main.NUM_CONSUMER < LAO_ZI_BU_CI_HOU) {
-			Group group = new Group();
-			group.evolution();
-		} else {
-			twoLevelRandom();
-		}
+		// if (Main.NUM_CONSUMER < LAO_ZI_BU_CI_HOU) {
+		Group group = new Group();
+		group.evolution();
+		// }
 
 		List<Line> lines = Main.BEST_UNIT.getSolution().getLines();
 		String[] content = new String[lines.size() + 2];
@@ -73,12 +71,13 @@ public class Deploy {
 		return content;
 	}
 
+	@SuppressWarnings("unused")
 	private static void twoLevelRandom() {
 		Random random = new Random();
-		int half = Main.NUM_CONSUMER >> 1;
+		int base = Main.NUM_CONSUMER >> 2;
 		while (!Thread.currentThread().isInterrupted()) {
 
-			int serverSize = random.nextInt(half) + half;
+			int serverSize = random.nextInt(base) + base;
 			Unit u = new Unit(serverSize);
 			Unit.initServerLocation(u, Main.NUM_NET);
 			if (u.isValid()) {
