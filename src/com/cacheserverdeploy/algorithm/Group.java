@@ -11,7 +11,7 @@ import com.filetool.main.Main;
 
 public class Group {
 	private static final Random random = new Random();
-	public static int GROUP_SIZE = 60; // 群体规模，即群体中个体的数量，一般为20~100
+	public static int GROUP_SIZE = 50; // 群体规模，即群体中个体的数量，一般为20~100
 	public static double CROSS_RATE = 0.8; // 交叉概率，一般为0.4~0.9
 	public static double VARIATION_RATE = 0.2; // 变异概率，一般为0.001~0.1
 	public static double SELECT_RATE = 0.6; // 选择时保留的比例
@@ -23,7 +23,13 @@ public class Group {
 	public Group() {
 		long start = System.currentTimeMillis();
 		System.out.println("compute init time...");
-		for (int i = 0; i < GROUP_SIZE; i++) {
+		Unit initU = new Unit(Main.NUM_CONSUMER);
+		initU.setServerLocation(Main.INIT_SERVERS);
+		if (initU.isValid()) {
+			initU.fillSolution();
+		}
+		group.add(initU);
+		for (int i = 1; i < GROUP_SIZE; i++) {
 			group.add(Unit.newRandomUnit(Main.NUM_NET));
 		}
 		System.out.println(System.currentTimeMillis() - start);

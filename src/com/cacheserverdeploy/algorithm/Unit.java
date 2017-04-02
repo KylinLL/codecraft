@@ -117,7 +117,7 @@ public class Unit implements Comparable<Unit>, Cloneable {
 	}
 
 	private static int randomLocation(Unit unit, int index, int range) {
-		if (index < unit.getSize() >> 2) {
+		if (index < unit.getSize() >> 1) {
 			int i = random.nextInt(PreProcess.num_elite);
 			return PreProcess.elite[i];
 		}
