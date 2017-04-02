@@ -14,7 +14,7 @@ import com.filetool.main.Main;
 
 public class Deploy {
 	public static final long MAX_TIME = 80 * 1000;
-	public static final long LAO_ZI_BU_CI_HOU = 100;
+	public static final long LAO_ZI_BU_CI_HOU = 200;
 	public static NetFlow flow;
 
 	/**

@@ -35,6 +35,7 @@ public class Main {
 	public static int[][] CONSUMER = new int[MAX_COMSUMERS_NODES][2]; // sink
 	public static Map<Integer, Integer> CONSUMER_MAP = new HashMap<Integer, Integer>(); // k:s,v:c
 	public static Unit BEST_UNIT;
+	public static int[] INIT_SERVERS;
 
 	public static void main(String[] args) throws Exception {
 		if (args.length != 2) {
@@ -82,6 +83,7 @@ public class Main {
 		NUM_PATH = scan.nextInt();
 		NUM_CONSUMER = scan.nextInt();
 		PRICE_PER_SERVER = scan.nextInt();
+		INIT_SERVERS = new int[NUM_CONSUMER];
 
 		for (int i = 0; i < NUM_PATH; i++) {
 			int start = scan.nextInt();
@@ -100,6 +102,7 @@ public class Main {
 			CONSUMER[id_consumer][0] = id_network;
 			CONSUMER[id_consumer][1] = bandwidth_need;
 			CONSUMER_MAP.put(id_network, id_consumer);
+			INIT_SERVERS[i] = id_network;
 		}
 		scan.close();
 	}

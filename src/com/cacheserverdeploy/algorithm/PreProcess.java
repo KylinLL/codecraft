@@ -45,9 +45,9 @@ public class PreProcess {
 		for (NetNode node : queue) {
 			elite[index++] = node.id;
 		}
-		for (int i : weight)
-			System.out.print(i + " ");
-		System.out.println();
+//		for (int i : weight)
+//			System.out.print(i + " ");
+//		System.out.println();
 	}
 
 	private static int BFSProcess(int s) {
@@ -64,11 +64,11 @@ public class PreProcess {
 			NetNode top = que.poll();
 			for (int i = 0; i < Main.NUM_NET; i++) {
 				if (top.id != i && Main.MATRIX_NETWORK[top.id][i] != 0 && !inq[i]) {
-					que.add(new NetNode(i, top.weight + Main.MATRIX_COST[top.id][i], Main.MATRIX_NETWORK[top.id][i],
-							top.depth + 1));
+					que.add(new NetNode(i, Main.MATRIX_COST[top.id][i], Main.MATRIX_NETWORK[top.id][i], top.depth + 1));
 					inq[i] = true;
 					if (consumer_servers.contains(i)) {
-						sum_flow += Math.min(top.flow, Main.MATRIX_NETWORK[top.id][i]) / (top.depth + top.weight);
+						sum_flow += Math.min(top.flow, Main.MATRIX_NETWORK[top.id][i])
+								/ (top.depth << 1 + Math.max(top.weight, Main.MATRIX_COST[top.id][i]));
 					}
 				}
 			}
