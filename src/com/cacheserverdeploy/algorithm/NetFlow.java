@@ -19,7 +19,7 @@ public class NetFlow {
     private final int vlen, superSink, superSource, vertexLen;
     private final int perServerCost;
     private final int totalDemands;
-    private final NetShortestInfo info;
+//    private final NetShortestInfo info;
 
     private AugmentPathStrategy strategy;
     private int[] sources, sourcesId;
@@ -36,7 +36,7 @@ public class NetFlow {
         this.demands = builder.demands;
         this.perServerCost = builder.perServerCost;
 
-        this.info = new NetShortestInfo();
+//        this.info = new NetShortestInfo();
         this.totalDemands = initSink();
     }
 
@@ -52,9 +52,9 @@ public class NetFlow {
         return total;
     }
 
-    public NetShortestInfo getInfo() {
-        return info;
-    }
+//    public NetShortestInfo getInfo() {
+//        return info;
+//    }
 
     public boolean meetDemands() {
         return strategy.maxFlow();
