@@ -1,20 +1,17 @@
 package com.cacheserverdeploy.deploy;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import com.cacheserverdeploy.algorithm.Group;
 import com.cacheserverdeploy.algorithm.NetFlow;
 import com.cacheserverdeploy.algorithm.PreProcess;
-import com.cacheserverdeploy.algorithm.Unit;
 import com.cacheserverdeploy.algorithm.NetFlow.Builder;
 import com.cacheserverdeploy.algorithm.NetFlow.Line;
 import com.filetool.main.Main;
 
 public class Deploy {
 	public static final long MAX_TIME = 80 * 1000;
-	public static final long LAO_ZI_BU_CI_HOU = 400;
+	public static final long LAO_ZI_BU_CI_HOU = 200;
 	public static NetFlow flow;
 
 	/**
@@ -52,10 +49,10 @@ public class Deploy {
 
 		PreProcess.preProcessing();
 
-		// if (Main.NUM_CONSUMER < LAO_ZI_BU_CI_HOU) {
-		Group group = new Group();
-		group.evolution();
-		// }
+		if (Main.NUM_CONSUMER < LAO_ZI_BU_CI_HOU) {
+			Group group = new Group();
+			group.evolution();
+		}
 
 		List<Line> lines = Main.BEST_UNIT.getSolution().getLines();
 		String[] content = new String[lines.size() + 2];
@@ -67,27 +64,7 @@ public class Deploy {
 		}
 		System.out.println("Server count init: " + (Main.NUM_CONSUMER - 1));
 		System.out.println("Server count: " + Main.BEST_UNIT.getSize());
-		System.out.println(Arrays.toString(Main.BEST_UNIT.getServerLocation()));
 		return content;
-	}
-
-	@SuppressWarnings("unused")
-	private static void twoLevelRandom() {
-		Random random = new Random();
-		int base = Main.NUM_CONSUMER >> 2;
-		while (!Thread.currentThread().isInterrupted()) {
-
-			int serverSize = random.nextInt(base) + base;
-			Unit u = new Unit(serverSize);
-			Unit.initServerLocation(u, Main.NUM_NET);
-			if (u.isValid()) {
-				u.fillSolution();
-				if (Main.BEST_UNIT.compareTo(u) > 0) {
-					Main.BEST_UNIT = u;
-				}
-				System.out.println("Best Cost: " + Main.BEST_UNIT.getCost());
-			}
-		}
 	}
 
 }

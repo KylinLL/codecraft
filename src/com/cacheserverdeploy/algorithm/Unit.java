@@ -9,7 +9,6 @@ import com.filetool.main.Main;
 
 public class Unit implements Comparable<Unit>, Cloneable {
 	private static final Random random = new Random();
-	// private int size; // 需要随机的服务器个数
 	private int[] serverLocation;
 	private Solution solution;
 
@@ -25,10 +24,6 @@ public class Unit implements Comparable<Unit>, Cloneable {
 	public int getSize() {
 		return serverLocation.length;
 	}
-
-	// public void setSize(int size) {
-	// this.size = size;
-	// }
 
 	public int[] getServerLocation() {
 		return serverLocation;

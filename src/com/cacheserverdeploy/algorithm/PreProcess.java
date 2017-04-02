@@ -31,11 +31,13 @@ public class PreProcess {
 	private static void calculateWeight() {
 
 		int sum = 0;
+		for (int i : consumer_servers) {
+			BFS(i);
+		}
 		for (int i = 0; i < Main.NUM_NET; i++) {
-			// weight[i] = 100 * getFlowSum(i) / (10 + getCostSum(i));
-			weight[i] = BFSProcess(i);
+//			BFSProcess(i);
 			sum += weight[i];
-			NetNode node = new NetNode(i, weight[i], 0, 1);
+			NetNode node = new NetNode(i, weight[i], 0, 0, 1);
 			queue.add(node);
 			if (queue.size() > num_elite)
 				queue.remove();
@@ -50,62 +52,66 @@ public class PreProcess {
 //		System.out.println();
 	}
 
-	private static int BFSProcess(int s) {
+	private static void BFS(int s) {
 		Queue<NetNode> que = new ArrayDeque<NetNode>();
 		boolean[] inq = new boolean[Main.NUM_NET];
-		// 这里把weight当作cost
-		que.add(new NetNode(s, 0, Integer.MAX_VALUE, 1));
+		que.add(new NetNode(s, 0, Main.CONSUMER[Main.CONSUMER_MAP.get(s)][1], 0, 1));
 		inq[s] = true;
-		int sum_flow = 0;
+		for (int i : consumer_servers) {
+			inq[i] = true;
+		}
+		weight[s] = Main.CONSUMER[Main.CONSUMER_MAP.get(s)][1];
+		while (!que.isEmpty()) {
+			NetNode top = que.poll();
+			for (int i = 0; i < Main.NUM_NET; i++) {
+				if (top.id != i && Main.MATRIX_NETWORK[top.id][i] != 0 && !inq[i]) {
+					int flow = Math.min(top.flow, Main.MATRIX_NETWORK[top.id][i]);
+					int cost = Math.max(top.cost, Main.MATRIX_COST[top.id][i]);
+					que.add(new NetNode(i, 0, flow, cost, top.depth + 1));
+					inq[i] = true;
+					weight[i] += flow / (top.depth << 1 + cost);
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private static void BFSProcess(int s) {
+		Queue<NetNode> que = new ArrayDeque<NetNode>();
+		boolean[] inq = new boolean[Main.NUM_NET];
+		que.add(new NetNode(s, 0, Integer.MAX_VALUE, 0, 1));
+		inq[s] = true;
 		if (consumer_servers.contains(s)) {
-			sum_flow = Main.CONSUMER[Main.CONSUMER_MAP.get(s)][1];
+			weight[s] = Main.CONSUMER[Main.CONSUMER_MAP.get(s)][1];
 		}
 		while (!que.isEmpty()) {
 			NetNode top = que.poll();
 			for (int i = 0; i < Main.NUM_NET; i++) {
 				if (top.id != i && Main.MATRIX_NETWORK[top.id][i] != 0 && !inq[i]) {
-					que.add(new NetNode(i, Main.MATRIX_COST[top.id][i], Main.MATRIX_NETWORK[top.id][i], top.depth + 1));
+					int flow = Math.min(top.flow, Main.MATRIX_NETWORK[top.id][i]);
+					int cost = Math.max(top.cost, Main.MATRIX_COST[top.id][i]);
+					que.add(new NetNode(i, 0, flow, cost, top.depth + 1));
 					inq[i] = true;
 					if (consumer_servers.contains(i)) {
-						sum_flow += Math.min(top.flow, Main.MATRIX_NETWORK[top.id][i])
-								/ (top.depth << 1 + Math.max(top.weight, Main.MATRIX_COST[top.id][i]));
+						weight[s] += flow / (top.depth << 1 + cost);
 					}
 				}
 			}
 		}
-		return sum_flow;
-	}
-
-	@SuppressWarnings("unused")
-	private static int getFlowSum(int point) {
-		int sum = 0;
-		for (int i = 0; i < Main.NUM_NET; i++)
-			sum += Main.MATRIX_NETWORK[point][i];
-		for (int i = 0; i < Main.NUM_NET; i++)
-			sum += Main.MATRIX_NETWORK[i][point];
-		return sum;
-	}
-
-	@SuppressWarnings("unused")
-	private static int getCostSum(int point) {
-		int sum = 0;
-		for (int i = 0; i < Main.NUM_NET; i++)
-			sum += Main.MATRIX_COST[point][i];
-		for (int i = 0; i < Main.NUM_NET; i++)
-			sum += Main.MATRIX_COST[i][point];
-		return sum;
 	}
 
 	private static class NetNode implements Comparable<NetNode> {
 		int id;
 		int weight;
 		int flow;
+		int cost;
 		int depth;
 
-		public NetNode(int id, int weight, int flow, int depth) {
+		public NetNode(int id, int weight, int flow, int cost, int depth) {
 			this.id = id;
 			this.weight = weight;
 			this.flow = flow;
+			this.cost = cost;
 			this.depth = depth;
 		}
 

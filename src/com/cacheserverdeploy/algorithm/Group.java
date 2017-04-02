@@ -29,7 +29,7 @@ public class Group {
 			initU.fillSolution();
 		}
 		group.add(initU);
-		for (int i = 1; i < GROUP_SIZE; i++) {
+		for (int i = 1; i < GROUP_SIZE && !Thread.currentThread().isInterrupted(); i++) {
 			group.add(Unit.newRandomUnit(Main.NUM_NET));
 		}
 		System.out.println(System.currentTimeMillis() - start);
@@ -43,7 +43,7 @@ public class Group {
 		int num_abandon = GROUP_SIZE - num_select;
 
 		int noChangeCount = 0;
-		Unit lastBest = group.get(0); // 上一代最佳个体，初始化为group中的第一个unit
+		Unit lastBest = group.get(0); // 上一代最佳个体
 
 		for (int i = 0; i < MAX_GENERATION && noChangeCount < MAX_NO_CHANGE_GEN
 				&& !Thread.currentThread().isInterrupted(); i++, noChangeCount++) {
@@ -102,11 +102,15 @@ public class Group {
 		} else {
 			u1.setServerLocation(group.get(0).getServerLocation());
 		}
-
-		while (!u2.isValid()) {
-			Unit.initServerLocation(u2, Main.NUM_NET);
+		if (u2.isValid()) {
+			u2.fillSolution();
+		} else {
+			u2.setServerLocation(group.get(1).getServerLocation());
 		}
-		u2.fillSolution();
+//		while (!u2.isValid()) {
+//			Unit.initServerLocation(u2, Main.NUM_NET);
+//		}
+//		u2.fillSolution();
 	}
 
 	private boolean checkRepeat(int num, int[] source, int from, int to) {
@@ -197,7 +201,6 @@ public class Group {
 		u.setServerLocation(newSource);
 		if (u.isValid()) {
 			u.fillSolution();
-			// u.setSize(u.getSize() - 1);
 		} else {
 			u.setServerLocation(oldSource);
 		}
