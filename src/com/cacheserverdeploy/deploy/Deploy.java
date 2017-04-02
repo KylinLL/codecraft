@@ -38,6 +38,7 @@ public class Deploy {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} finally {
+					System.out.println("Time over");
 					main.interrupt();
 				}
 			}

@@ -21,9 +21,12 @@ public class Group {
 	private List<Unit> group = new ArrayList<Unit>();
 
 	public Group() {
+		long start = System.currentTimeMillis();
+		System.out.println("compute init time...");
 		for (int i = 0; i < GROUP_SIZE; i++) {
 			group.add(Unit.newRandomUnit(Main.NUM_NET));
 		}
+		System.out.println(System.currentTimeMillis() - start);
 	}
 
 	public void evolution() {

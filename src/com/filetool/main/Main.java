@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import com.cacheserverdeploy.algorithm.NetFlow.Line;
@@ -32,6 +33,7 @@ public class Main {
 	public static int[][] MATRIX_NETWORK = new int[MAX_NODES][MAX_NODES]; // 带宽,capacity
 	public static int[][] MATRIX_COST = new int[MAX_NODES][MAX_NODES]; // 带宽价格,price
 	public static int[][] CONSUMER = new int[MAX_COMSUMERS_NODES][2]; // sink
+	public static Map<Integer, Integer> CONSUMER_MAP = new HashMap<Integer, Integer>(); // k:s,v:c
 	public static Unit BEST_UNIT;
 
 	public static void main(String[] args) throws Exception {
@@ -97,6 +99,7 @@ public class Main {
 			int bandwidth_need = scan.nextInt();
 			CONSUMER[id_consumer][0] = id_network;
 			CONSUMER[id_consumer][1] = bandwidth_need;
+			CONSUMER_MAP.put(id_network, id_consumer);
 		}
 		scan.close();
 	}
