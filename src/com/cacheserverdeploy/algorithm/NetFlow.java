@@ -19,7 +19,6 @@ public class NetFlow {
     private final int vlen, superSink, superSource, vertexLen;
     private final int perServerCost;
     private final int totalDemands;
-//    private final NetShortestInfo info;
 
     private AugmentPathStrategy strategy;
     private int[] sources, sourcesId;
@@ -36,7 +35,6 @@ public class NetFlow {
         this.demands = builder.demands;
         this.perServerCost = builder.perServerCost;
 
-//        this.info = new NetShortestInfo();
         this.totalDemands = initSink();
     }
 
@@ -51,10 +49,6 @@ public class NetFlow {
         }
         return total;
     }
-
-//    public NetShortestInfo getInfo() {
-//        return info;
-//    }
 
     public boolean meetDemands() {
         return strategy.maxFlow();
@@ -86,62 +80,6 @@ public class NetFlow {
 
     public static Builder builder(int vlen) {
         return new Builder(vlen);
-    }
-
-    public class NetShortestInfo {
-        private final int[] cost = new int[vlen + 2];
-        private final int[] pre = new int[vlen + 2];
-
-        public NetShortestInfo() {
-            for (int i = 0; i < sinks.length; i++) {
-                capacity[sinks[i]][vlen + 1] = demands[i];
-                capacity[vlen + 1][sinks[i]] = demands[i];
-                price[sinks[i]][vlen + 1] = 0;
-                price[vlen + 1][sinks[i]] = 0;
-            }
-            analyse();
-        }
-
-        public int[] getCost() {
-            return cost;
-        }
-
-        public int[] getPre() {
-            return pre;
-        }
-
-        private void analyse() {
-            PriorityQueue<Integer> queue = new PriorityQueue<Integer>(vlen + 2, new Comparator<Integer>() {
-                @Override
-                public int compare(Integer o1, Integer o2) {
-                    return cost[o1] - cost[o2];
-                }
-            });
-            boolean[] visited = new boolean[vlen + 2];
-            for (int i = 0; i < vlen + 2; i++) {
-                pre[i] = -1;
-                visited[i] = false;
-                cost[i] = Main.MAX_INT;
-                if (i == vlen + 1) {
-                    cost[i] = 0;
-                }
-                queue.add(i);
-            }
-
-            int cur = -1;
-            while (!queue.isEmpty()) {
-                cur = queue.poll();
-                visited[cur] = true;
-                for (int i = 0; i < vlen + 2; i++) {
-                    if (!visited[i] && capacity[cur][i] > 0 && cost[i] > cost[cur] + price[cur][i]) {
-                        queue.remove(i);
-                        cost[i] = cost[cur] + price[cur][i];
-                        queue.add(i);
-                        pre[i] = cur;
-                    }
-                }
-            }
-        }
     }
 
     // http://blog.csdn.net/jarily/article/details/8613208
